@@ -235,7 +235,7 @@ export default function EmailListRoute() {
   return (
     <MailboxSplitView selectedEmailId={selectedEmailId} isComposing={isComposing}>
       {/* Folder header */}
-      <div className="flex items-center justify-between px-4 py-3.5 border-b border-kumo-line shrink-0 md:px-5">
+      <div className="flex h-12 items-center justify-between px-4 border-b border-kumo-line shrink-0 md:px-5">
         <h1 className="text-lg font-semibold text-kumo-default">{folderName}</h1>
         <div className="flex items-center gap-1">
           {totalCount > 0 && (

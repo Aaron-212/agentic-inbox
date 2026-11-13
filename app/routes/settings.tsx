@@ -70,7 +70,7 @@ export default function SettingsRoute() {
   const isCustomPrompt = agentPrompt.trim().length > 0;
 
   return (
-    <div className="max-w-2xl px-4 py-4 md:px-8 md:py-6 h-full overflow-y-auto">
+    <div className="px-4 py-4 md:px-8 md:py-6 h-full overflow-y-auto">
       <h1 className="text-lg font-semibold text-kumo-default mb-6">Settings</h1>
 
       <form
@@ -121,9 +121,6 @@ export default function SettingsRoute() {
               );
             }}
           />
-          <p id="forwarding-help" className="text-xs text-kumo-subtle mt-2">
-            A copy stays in this inbox. Verify the destination address in Cloudflare Email Routing first.
-          </p>
         </div>
 
         {/* Agent System Prompt */}
