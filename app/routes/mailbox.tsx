@@ -33,7 +33,15 @@ export default function MailboxRoute() {
   // Prefetch mailbox data for child components
   useMailbox(mailboxId);
   const prevMailboxIdRef = useRef<string | undefined>(undefined);
-  const { isSidebarOpen, openSidebar, closeSidebar, isAgentPanelOpen, closePanel, closeComposeModal } = useUIStore();
+  const {
+    isSidebarOpen,
+    openSidebar,
+    closeSidebar,
+    isAgentPanelOpen,
+    setAgentPanelOpen,
+    closePanel,
+    closeComposeModal,
+  } = useUIStore();
   const isMobile = useSyncExternalStore(subscribeToMobileSidebar, getIsMobileSidebar, getServerIsMobileSidebar);
   const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
 
@@ -68,12 +76,24 @@ export default function MailboxRoute() {
         </main>
       </div>
 
-      {/* Agent + MCP sidebar -- togglable on desktop */}
-      {isAgentPanelOpen && (
-        <div className="hidden lg:flex w-[380px] shrink-0 border-l border-kumo-line flex-col bg-kumo-base overflow-hidden">
+      {/* Keep the right sidebar mounted when collapsed so chat and tab state survive. */}
+      <KumoSidebar.Provider
+        side="right"
+        open={isAgentPanelOpen}
+        onOpenChange={setAgentPanelOpen}
+        collapsible="offcanvas"
+        contained
+        resizable
+        defaultWidth={380}
+        minWidth={320}
+        maxWidth={560}
+        className="hidden lg:flex h-full w-auto shrink-0"
+      >
+        <KumoSidebar id="agent-sidebar" aria-label="Agent and MCP">
           <AgentSidebar />
-        </div>
-      )}
+          <KumoSidebar.ResizeHandle aria-label="Resize agent sidebar" />
+        </KumoSidebar>
+      </KumoSidebar.Provider>
 
       <ComposeEmail />
     </KumoSidebar.Provider>

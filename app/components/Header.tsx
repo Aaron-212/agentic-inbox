@@ -57,7 +57,7 @@ export default function Header() {
   const isSettingsActive = location.pathname.includes("/settings");
 
   return (
-    <header className="h-16 flex items-center gap-2 bg-kumo-base border-b border-kumo-line sticky top-0 z-10 md:px-5 md:gap-4">
+    <header className="h-16 flex items-center gap-2 px-4 bg-kumo-base border-b border-kumo-line sticky top-0 z-10 md:px-5 md:gap-4">
       {/* Hamburger menu - mobile only */}
       <Button
         variant="ghost"
@@ -148,6 +148,8 @@ export default function Header() {
               icon={<RobotIcon size={20} />}
               onClick={toggleAgentPanel}
               aria-label="Toggle agent panel"
+              aria-expanded={isAgentPanelOpen}
+              aria-controls="agent-sidebar"
               className="hidden lg:inline-flex"
             />
           }

@@ -46,29 +46,29 @@ export default function AgentSidebar() {
   return (
     <div className="flex flex-col h-full">
       {/* Tab bar */}
-      <div className="flex items-center border-b border-kumo-line shrink-0">
+      <div className="h-16 flex items-center border-b border-kumo-line shrink-0">
         <button
           type="button"
           onClick={() => setActiveTab("agent")}
-          className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 bg-transparent cursor-pointer ${
+          className={`flex items-center gap-1.5 px-8 h-full text-base font-medium transition-colors border-b-2 bg-transparent cursor-pointer ${
             activeTab === "agent"
               ? "border-kumo-brand text-kumo-default"
               : "border-transparent text-kumo-subtle hover:text-kumo-default"
           }`}
         >
-          <RobotIcon size={14} weight={activeTab === "agent" ? "fill" : "regular"} />
+          <RobotIcon size={16} weight={activeTab === "agent" ? "fill" : "regular"} />
           Agent
         </button>
         <button
           type="button"
           onClick={() => setActiveTab("mcp")}
-          className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 bg-transparent cursor-pointer ${
+          className={`flex items-center gap-1.5 px-8 h-full text-base font-medium transition-colors border-b-2 bg-transparent cursor-pointer ${
             activeTab === "mcp"
               ? "border-kumo-brand text-kumo-default"
               : "border-transparent text-kumo-subtle hover:text-kumo-default"
           }`}
         >
-          <PlugsIcon size={14} weight={activeTab === "mcp" ? "fill" : "regular"} />
+          <PlugsIcon size={16} weight={activeTab === "mcp" ? "fill" : "regular"} />
           MCP
         </button>
       </div>

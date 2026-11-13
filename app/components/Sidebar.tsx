@@ -109,7 +109,7 @@ export default function Sidebar() {
   };
 
   return (
-    <KumoSidebar id="folder-sidebar" aria-label="Mailbox folders" className="max-md:max-w-5/6">
+    <KumoSidebar id="folder-sidebar" aria-label="Mailbox folders" className="max-md:w-5/6">
       {/* Back + identity */}
       <KumoSidebar.Header className="h-16 flex-row items-center gap-4">
         <Button
@@ -123,11 +123,11 @@ export default function Sidebar() {
           icon={<CaretLeftIcon size={16} />}
           aria-label="Back to mailboxes"
         />
-        <KumoSidebar.Close className="md:hidden" />
-        <div className="flex flex-col">
+        <div className="flex flex-col flex-1">
           <div className="text-base font-semibold text-kumo-default truncate">{displayName}</div>
           <div className="text-sm text-kumo-subtle truncate">{currentMailbox?.email || mailboxId}</div>
         </div>
+        <KumoSidebar.Close className="md:hidden" />
       </KumoSidebar.Header>
 
       {/* Compose */}
