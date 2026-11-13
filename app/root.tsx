@@ -18,6 +18,18 @@ import {
 import { ApiError } from "~/services/api";
 import "./index.css";
 
+// Kumo uses data-mode for its theme tokens. Run before rendering to avoid a light flash.
+const colorSchemeScript = `
+(() => {
+  const preference = window.matchMedia("(prefers-color-scheme: dark)");
+  const syncColorScheme = () => {
+    document.documentElement.dataset.mode = preference.matches ? "dark" : "light";
+  };
+  syncColorScheme();
+  preference.addEventListener("change", syncColorScheme);
+})();
+`;
+
 function makeQueryClient() {
   return new QueryClient({
     defaultOptions: {
@@ -67,9 +79,11 @@ const KumoLink = forwardRef<HTMLAnchorElement, React.AnchorHTMLAttributes<HTMLAn
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta charSet="UTF-8" />
+        <meta name="color-scheme" content="light dark" />
+        <script dangerouslySetInnerHTML={{ __html: colorSchemeScript }} />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="icon" type="image/x-icon" href="/favicon.ico" sizes="48x48 32x32 16x16" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
