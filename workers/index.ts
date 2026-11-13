@@ -25,6 +25,21 @@ type AppContext = Context<MailboxContext>;
 
 // -- Request body schemas (kept for validation) ---------------------
 
+const ForwardingSettingsSchema = z.discriminatedUnion("enabled", [
+  z.object({ enabled: z.literal(true), email: z.string().trim().email().toLowerCase() }),
+  z.object({ enabled: z.literal(false), email: z.string().trim() }),
+]);
+
+function mailboxSettingsSchema(mailboxId: string) {
+  return z
+    .object({ forwarding: ForwardingSettingsSchema.optional() })
+    .passthrough()
+    .refine((settings) => !settings.forwarding?.enabled || settings.forwarding.email !== mailboxId.toLowerCase(), {
+      message: "Forwarding address must be different from this mailbox",
+      path: ["forwarding", "email"],
+    });
+}
+
 const CreateMailboxBody = z.object({
   email: z.string().email(),
   name: z.string().min(1),
@@ -128,7 +143,9 @@ app.post("/api/v1/mailboxes", async (c) => {
     signature: { enabled: false, text: "" },
     autoReply: { enabled: false, subject: "", message: "" },
   };
-  const finalSettings = { ...defaultSettings, ...settings };
+  const result = mailboxSettingsSchema(email).safeParse({ ...defaultSettings, ...settings });
+  if (!result.success) return c.json({ error: result.error.issues[0].message }, 400);
+  const finalSettings = result.data;
   await c.env.BUCKET.put(key, JSON.stringify(finalSettings));
   const stub = c.env.MAILBOX.get(c.env.MAILBOX.idFromName(email));
   await stub.getFolders();
@@ -144,7 +161,9 @@ app.get("/api/v1/mailboxes/:mailboxId", async (c) => {
 
 app.put("/api/v1/mailboxes/:mailboxId", async (c) => {
   const mailboxId = c.req.param("mailboxId")!;
-  const { settings } = (await c.req.json()) as { settings: Record<string, unknown> };
+  const result = z.object({ settings: mailboxSettingsSchema(mailboxId) }).safeParse(await c.req.json());
+  if (!result.success) return c.json({ error: result.error.issues[0].message }, 400);
+  const { settings } = result.data;
   const key = `mailboxes/${mailboxId}.json`;
   if (!(await c.env.BUCKET.head(key))) return c.json({ error: "Not found" }, 404);
   await c.env.BUCKET.put(key, JSON.stringify(settings));
@@ -412,31 +431,25 @@ async function streamToArrayBuffer(stream: ReadableStream, streamSize: number) {
   return result;
 }
 
-async function receiveEmail(event: { raw: ReadableStream; rawSize: number }, env: Env, ctx: ExecutionContext) {
+async function receiveEmail(event: ForwardableEmailMessage, env: Env, ctx: ExecutionContext) {
   const rawEmail = await streamToArrayBuffer(event.raw, event.rawSize);
   const parsedEmail = await new PostalMime().parse(rawEmail);
 
-  if (!parsedEmail.to?.length || !parsedEmail.to[0].address) throw new Error("received email with empty to");
-
   const allowedAddresses = ((env.EMAIL_ADDRESSES ?? []) as string[]).map((a) => a.toLowerCase());
-  const allRecipients = parsedEmail.to.map((t) => t.address?.toLowerCase()).filter(Boolean) as string[];
+  const allRecipients = (parsedEmail.to || []).map((t) => t.address?.toLowerCase()).filter(Boolean) as string[];
   const ccRecipients = (parsedEmail.cc || []).map((e) => e.address?.toLowerCase()).filter(Boolean) as string[];
   const bccRecipients = (parsedEmail.bcc || []).map((e) => e.address?.toLowerCase()).filter(Boolean) as string[];
 
-  let mailboxId: string | undefined;
-  if (allowedAddresses.length > 0) {
-    mailboxId = allRecipients.find((addr) => allowedAddresses.includes(addr));
-    if (!mailboxId) {
-      console.log(`Ignoring email: no recipient matches EMAIL_ADDRESSES.`);
-      return;
-    }
-  } else {
-    mailboxId = allRecipients[0];
+  // Use the SMTP recipient so aliases, Cc, and Bcc select the correct mailbox settings.
+  const mailboxId = event.to.toLowerCase();
+  if (allowedAddresses.length > 0 && !allowedAddresses.includes(mailboxId)) {
+    console.log("Ignoring email: recipient does not match EMAIL_ADDRESSES.");
+    return;
   }
-  if (!mailboxId) throw new Error("received email with no valid recipient address");
 
   const messageId = crypto.randomUUID();
-  if (!(await env.BUCKET.head(`mailboxes/${mailboxId}.json`))) {
+  const mailbox = await env.BUCKET.get(`mailboxes/${mailboxId}.json`);
+  if (!mailbox) {
     console.log(`Ignoring email for ${mailboxId}: mailbox does not exist`);
     return;
   }
@@ -500,6 +513,18 @@ async function receiveEmail(event: { raw: ReadableStream; rawSize: number }, env
     },
     attachmentData,
   );
+
+  // Forward only after persisting the message and attachments. Delivery failures must not
+  // bounce an already saved message or prevent the agent from processing it.
+  try {
+    const settings = mailboxSettingsSchema(mailboxId).safeParse(await mailbox.json());
+    const forwarding = settings.success ? settings.data.forwarding : undefined;
+    if (forwarding?.enabled && !event.headers.has("X-Agentic-Inbox-Forwarded")) {
+      await event.forward(forwarding.email, new Headers({ "X-Agentic-Inbox-Forwarded": mailboxId }));
+    }
+  } catch (error) {
+    console.error(`Forwarding failed for ${mailboxId}; local copy retained:`, error);
+  }
 
   const agentStub = env.EMAIL_AGENT.get(env.EMAIL_AGENT.idFromName(mailboxId));
   ctx.waitUntil(

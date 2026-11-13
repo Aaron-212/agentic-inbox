@@ -19,6 +19,8 @@ export default function SettingsRoute() {
   const updateMailboxMutation = useUpdateMailbox();
 
   const [displayName, setDisplayName] = useState("");
+  const [forwardingEnabled, setForwardingEnabled] = useState(false);
+  const [forwardingEmail, setForwardingEmail] = useState("");
   const [agentPrompt, setAgentPrompt] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
@@ -26,6 +28,8 @@ export default function SettingsRoute() {
     if (mailbox) {
       setDisplayName(mailbox.settings?.fromName || mailbox.name || "");
       setAgentPrompt(mailbox.settings?.agentSystemPrompt || "");
+      setForwardingEnabled(mailbox.settings?.forwarding?.enabled ?? false);
+      setForwardingEmail(mailbox.settings?.forwarding?.email || "");
     }
   }, [mailbox]);
 
@@ -35,14 +39,15 @@ export default function SettingsRoute() {
     const settings = {
       ...mailbox.settings,
       fromName: displayName,
+      forwarding: { enabled: forwardingEnabled, email: forwardingEmail.trim() },
       agentSystemPrompt: agentPrompt.trim() || undefined,
     };
     try {
       await updateMailboxMutation.mutateAsync({ mailboxId, settings });
       toastManager.add({ title: "Settings saved!" });
-    } catch {
+    } catch (error) {
       toastManager.add({
-        title: "Failed to save settings",
+        title: error instanceof Error ? error.message : "Failed to save settings",
         variant: "error",
       });
     } finally {
@@ -68,7 +73,13 @@ export default function SettingsRoute() {
     <div className="max-w-2xl px-4 py-4 md:px-8 md:py-6 h-full overflow-y-auto">
       <h1 className="text-lg font-semibold text-kumo-default mb-6">Settings</h1>
 
-      <div className="space-y-6">
+      <form
+        className="space-y-6"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void handleSave();
+        }}
+      >
         {/* Account */}
         <div className="rounded-lg border border-kumo-line bg-kumo-base p-5">
           <div className="text-sm font-medium text-kumo-default mb-4">Account</div>
@@ -76,6 +87,43 @@ export default function SettingsRoute() {
             <Input label="Display Name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
             <Input label="Email" type="email" value={mailbox.email} disabled />
           </div>
+        </div>
+
+        <div className="rounded-lg border border-kumo-line bg-kumo-base p-5">
+          <div className="text-sm font-medium text-kumo-default mb-4">Forwarding</div>
+          <label className="flex items-center gap-2 text-sm text-kumo-default mb-3">
+            <input
+              type="checkbox"
+              name="forwardingEnabled"
+              checked={forwardingEnabled}
+              onChange={(event) => setForwardingEnabled(event.target.checked)}
+            />
+            Forward incoming mail
+          </label>
+          <Input
+            label="Forward to"
+            name="forwardingEmail"
+            type="email"
+            autoComplete="email"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            value={forwardingEmail}
+            disabled={!forwardingEnabled}
+            required={forwardingEnabled}
+            aria-describedby="forwarding-help"
+            onChange={(event) => {
+              setForwardingEmail(event.target.value);
+              event.target.setCustomValidity(
+                event.target.value.trim().toLowerCase() === mailbox.email.toLowerCase()
+                  ? "Enter an address different from this mailbox."
+                  : "",
+              );
+            }}
+          />
+          <p id="forwarding-help" className="text-xs text-kumo-subtle mt-2">
+            A copy stays in this inbox. Verify the destination address in Cloudflare Email Routing first.
+          </p>
         </div>
 
         {/* Agent System Prompt */}
@@ -88,6 +136,7 @@ export default function SettingsRoute() {
             </div>
             {isCustomPrompt && (
               <Button
+                type="button"
                 variant="ghost"
                 size="xs"
                 icon={<ArrowCounterClockwiseIcon size={14} />}
@@ -115,11 +164,11 @@ export default function SettingsRoute() {
 
         {/* Save */}
         <div className="flex justify-end">
-          <Button variant="primary" onClick={handleSave} loading={isSaving}>
+          <Button type="submit" variant="primary" loading={isSaving} disabled={isSaving}>
             Save Changes
           </Button>
         </div>
-      </div>
+      </form>
     </div>
   );
 }

@@ -102,7 +102,7 @@ app.all("*", (c) => {
 // Export the Hono app as the default export with an email handler
 export default {
   fetch: app.fetch,
-  async email(event: { raw: ReadableStream; rawSize: number }, env: Env, ctx: ExecutionContext) {
+  async email(event: ForwardableEmailMessage, env: Env, ctx: ExecutionContext) {
     try {
       await receiveEmail(event, env, ctx);
     } catch (e) {
