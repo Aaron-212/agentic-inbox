@@ -15,7 +15,8 @@ import {
   buildThreadingHeaders,
   listMailboxes,
 } from "./lib/email-helpers";
-import { SendEmailRequestSchema } from "./lib/schemas";
+import { SendEmailRequestSchema, type EmailFull } from "./lib/schemas";
+import { generateReplyDraft } from "./agent";
 import { handleReplyEmail, handleForwardEmail } from "./routes/reply-forward";
 import { Folders } from "../shared/folders";
 import type { Env } from "./types";
@@ -407,6 +408,21 @@ app.get("/api/v1/mailboxes/:mailboxId/emails/:emailId/attachments/:attachmentId"
   return new Response(obj.body, { headers });
 });
 
+app.post("/api/v1/mailboxes/:mailboxId/emails/:emailId/ai-reply", async (c: AppContext) => {
+  const email = (await c.var.mailboxStub.getEmail(c.req.param("emailId")!)) as EmailFull | null;
+  if (!email) return c.json({ error: "Email not found" }, 404);
+  if (email.folder_id === Folders.DRAFT) return c.json({ error: "Cannot reply to a draft" }, 400);
+  try {
+    const result = await generateReplyDraft(c.env, c.req.param("mailboxId")!, email);
+    if ("error" in result) return c.json(result, 422);
+    const draft = await c.var.mailboxStub.getEmail(result.draftId);
+    return c.json(draft, 201);
+  } catch (error) {
+    console.error("AI reply generation failed:", error);
+    return c.json({ error: "Failed to generate an AI reply. Please try again." }, 502);
+  }
+});
+
 // -- Receive inbound email ------------------------------------------
 
 const MAX_EMAIL_SIZE = 25 * 1024 * 1024;
@@ -431,7 +447,7 @@ async function streamToArrayBuffer(stream: ReadableStream, streamSize: number) {
   return result;
 }
 
-async function receiveEmail(event: ForwardableEmailMessage, env: Env, ctx: ExecutionContext) {
+async function receiveEmail(event: ForwardableEmailMessage, env: Env) {
   const rawEmail = await streamToArrayBuffer(event.raw, event.rawSize);
   const parsedEmail = await new PostalMime().parse(rawEmail);
 
@@ -515,7 +531,7 @@ async function receiveEmail(event: ForwardableEmailMessage, env: Env, ctx: Execu
   );
 
   // Forward only after persisting the message and attachments. Delivery failures must not
-  // bounce an already saved message or prevent the agent from processing it.
+  // bounce an already saved message.
   try {
     const settings = mailboxSettingsSchema(mailboxId).safeParse(await mailbox.json());
     const forwarding = settings.success ? settings.data.forwarding : undefined;
@@ -525,25 +541,6 @@ async function receiveEmail(event: ForwardableEmailMessage, env: Env, ctx: Execu
   } catch (error) {
     console.error(`Forwarding failed for ${mailboxId}; local copy retained:`, error);
   }
-
-  const agentStub = env.EMAIL_AGENT.get(env.EMAIL_AGENT.idFromName(mailboxId));
-  ctx.waitUntil(
-    agentStub
-      .fetch(
-        new Request("https://agents/onNewEmail", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            mailboxId,
-            emailId: messageId,
-            sender: (parsedEmail.from?.address || "").toLowerCase(),
-            subject: parsedEmail.subject || "",
-            threadId,
-          }),
-        }),
-      )
-      .catch((e) => console.error("Auto-draft trigger failed:", (e as Error).message)),
-  );
 }
 
 export { app, receiveEmail };

@@ -16,6 +16,7 @@ import {
   PaperPlaneTiltIcon,
   PencilSimpleIcon,
   StarIcon,
+  SparkleIcon,
   TrashIcon,
   XIcon,
 } from "@phosphor-icons/react";
@@ -32,6 +33,8 @@ interface EmailPanelToolbarProps {
   onSendDraft: () => void;
   onEditDraft: () => void;
   onReply: () => void;
+  onDraftAIReply: () => void;
+  isGeneratingAIReply: boolean;
   onReplyAll: () => void;
   onForward: () => void;
   onToggleStar: () => void;
@@ -51,6 +54,8 @@ export default function EmailPanelToolbar({
   onSendDraft,
   onEditDraft,
   onReply,
+  onDraftAIReply,
+  isGeneratingAIReply,
   onReplyAll,
   onForward,
   onToggleStar,
@@ -60,7 +65,7 @@ export default function EmailPanelToolbar({
   onDelete,
 }: EmailPanelToolbarProps) {
   return (
-    <div className="flex items-center gap-1 px-3 py-2 border-b border-kumo-line shrink-0 md:px-4">
+    <div className="flex flex-wrap items-center gap-1 px-3 py-2 border-b border-kumo-line shrink-0 md:px-4">
       <Button
         variant="ghost"
         shape="square"
@@ -102,6 +107,20 @@ export default function EmailPanelToolbar({
               />
             }
           />
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            icon={<SparkleIcon size={16} />}
+            onClick={() => {
+              if (!isGeneratingAIReply) onDraftAIReply();
+            }}
+            loading={isGeneratingAIReply}
+            aria-disabled={isGeneratingAIReply}
+            aria-busy={isGeneratingAIReply}
+          >
+            Draft an AI reply
+          </Button>
           <Tooltip
             content="Reply All"
             side="bottom"

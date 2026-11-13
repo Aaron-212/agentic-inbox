@@ -16,6 +16,7 @@ import api from "~/services/api";
 import {
   useDeleteEmail,
   useEmail,
+  useGenerateAIReply,
   useMoveEmail,
   useReplyToEmail,
   useSendEmail,
@@ -59,6 +60,7 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
   const moveEmailMut = useMoveEmail();
   const sendEmailMut = useSendEmail();
   const replyMut = useReplyToEmail();
+  const generateAIReply = useGenerateAIReply();
   const { data: folders = [] } = useFolders(mailboxId) as { data?: Folder[] };
   const { data: currentMailbox } = useMailbox(mailboxId) as {
     data?: Mailbox;
@@ -208,6 +210,25 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
     }
   };
 
+  const handleDraftAIReply = async () => {
+    if (!mailboxId || !lastReceivedMessage || generateAIReply.isPending) return;
+    const originalEmail = lastReceivedMessage;
+    try {
+      const draftEmail = await generateAIReply.mutateAsync({ mailboxId, emailId: originalEmail.id });
+      const current = useUIStore.getState();
+      if (current.selectedEmailId === emailId && !current.isComposing) {
+        startCompose({ mode: "reply", originalEmail, draftEmail });
+      } else {
+        toastManager.add({ title: "AI reply saved to Drafts" });
+      }
+    } catch (error) {
+      toastManager.add({
+        title: error instanceof Error ? error.message : "Failed to generate an AI reply.",
+        variant: "error",
+      });
+    }
+  };
+
   const hasThread = allMessages.length > 1;
 
   return (
@@ -221,6 +242,8 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
         onBack={closePanel}
         onSendDraft={() => handleSendDraft()}
         onEditDraft={() => handleEditDraft()}
+        onDraftAIReply={handleDraftAIReply}
+        isGeneratingAIReply={generateAIReply.isPending}
         onReply={() => startCompose({ mode: "reply", originalEmail: lastReceivedMessage })}
         onReplyAll={() =>
           startCompose({

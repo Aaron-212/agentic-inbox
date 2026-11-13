@@ -18,9 +18,9 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
+async function request<T>(url: string, options: RequestInit = {}, timeoutMs = REQUEST_TIMEOUT_MS): Promise<T> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   // Combine caller signal (e.g. TanStack Query abort) with our timeout signal
   const signal = options.signal ? AbortSignal.any([options.signal, controller.signal]) : controller.signal;
@@ -90,6 +90,9 @@ interface EmailListResponse {
 // ---------- API client ----------
 
 const api = {
+  generateAIReply: (mailboxId: string, emailId: string) =>
+    request<Email>(`/api/v1/mailboxes/${mailboxId}/emails/${emailId}/ai-reply`, { method: "POST" }, 120_000),
+
   // Config
   getConfig: () => get<{ domains: string[]; emailAddresses: string[] }>("/api/v1/config"),
 

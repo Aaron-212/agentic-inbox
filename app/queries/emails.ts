@@ -85,6 +85,15 @@ function useInvalidateEmailData() {
   };
 }
 
+export function useGenerateAIReply() {
+  const invalidate = useInvalidateEmailData();
+  return useMutation({
+    mutationFn: ({ mailboxId, emailId }: { mailboxId: string; emailId: string }) =>
+      api.generateAIReply(mailboxId, emailId),
+    onSuccess: (_data, { mailboxId }) => invalidate(mailboxId),
+  });
+}
+
 export function useSendEmail() {
   const invalidate = useInvalidateEmailData();
   return useMutation({
