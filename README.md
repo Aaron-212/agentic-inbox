@@ -51,9 +51,12 @@ https://github.com/cloudflare/agentic-inbox/issues/4#issuecomment-4269118513
 
 ## Getting Started
 
+Install Node.js 26 and pnpm 12 with [mise](https://mise.jdx.dev/), then start the development server:
+
 ```bash
-npm install
-npm run dev
+mise install
+mise exec -- pnpm install
+mise exec -- pnpm run dev
 ```
 
 ### Configuration
@@ -63,8 +66,10 @@ npm run dev
 
 ### Deploy
 
+Deploy to Cloudflare:
+
 ```bash
-npm run deploy
+mise exec -- pnpm run deploy
 ```
 
 ## Prerequisites
