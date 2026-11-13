@@ -28,18 +28,14 @@ export async function isPromptInjection(ai: Ai, bodyHtml: string | null | undefi
   if (plainText.length < 10) return false;
 
   try {
-    const response = (await ai.run(
-      // @ts-expect-error — model string not in generated union
-      "@cf/meta/llama-3.1-8b-instruct-fast",
-      {
-        messages: [
-          { role: "system", content: INJECTION_PROMPT },
-          { role: "user", content: plainText },
-        ],
-        max_tokens: 10,
-        temperature: 0,
-      },
-    )) as { response?: string };
+    const response = (await ai.run("@cf/meta/llama-3.1-8b-instruct-fast", {
+      messages: [
+        { role: "system", content: INJECTION_PROMPT },
+        { role: "user", content: plainText },
+      ],
+      max_tokens: 10,
+      temperature: 0,
+    })) as { response?: string };
 
     const result = (response?.response || "NO").trim().toUpperCase();
 
