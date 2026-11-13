@@ -3,7 +3,7 @@
 //     https://opensource.org/licenses/Apache-2.0
 
 import { Sidebar as KumoSidebar } from "@cloudflare/kumo";
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Outlet, useParams } from "react-router";
 import AgentSidebar from "~/components/AgentSidebar";
 import ComposeEmail from "~/components/ComposeEmail";
@@ -35,6 +35,7 @@ export default function MailboxRoute() {
   const prevMailboxIdRef = useRef<string | undefined>(undefined);
   const { isSidebarOpen, openSidebar, closeSidebar, isAgentPanelOpen, closePanel, closeComposeModal } = useUIStore();
   const isMobile = useSyncExternalStore(subscribeToMobileSidebar, getIsMobileSidebar, getServerIsMobileSidebar);
+  const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
 
   useEffect(() => {
     if (prevMailboxIdRef.current && mailboxId && prevMailboxIdRef.current !== mailboxId) {
@@ -48,15 +49,14 @@ export default function MailboxRoute() {
 
   return (
     <KumoSidebar.Provider
-      open={isMobile ? isSidebarOpen : true}
-      onOpenChange={isMobile ? (open) => (open ? openSidebar() : closeSidebar()) : undefined}
+      open={isMobile ? isSidebarOpen : isDesktopSidebarOpen}
+      onOpenChange={isMobile ? (open) => (open ? openSidebar() : closeSidebar()) : setIsDesktopSidebarOpen}
       collapsible="offcanvas"
       resizable
       defaultWidth={256}
       minWidth={200}
       maxWidth={320}
       className="h-screen overflow-hidden"
-      style={{ "--sidebar-bg": "var(--color-kumo-recessed)" } as React.CSSProperties}
     >
       <Sidebar />
 

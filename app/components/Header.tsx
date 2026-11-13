@@ -2,7 +2,7 @@
 // Licensed under the Apache 2.0 license found in the LICENSE file or at:
 //     https://opensource.org/licenses/Apache-2.0
 
-import { Button, Input, Tooltip } from "@cloudflare/kumo";
+import { Button, Input, Sidebar as KumoSidebar, Tooltip, useSidebar } from "@cloudflare/kumo";
 import { GearSixIcon, ListIcon, MagnifyingGlassIcon, RobotIcon, XIcon } from "@phosphor-icons/react";
 import { type KeyboardEvent, useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router";
@@ -16,6 +16,7 @@ export default function Header() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const { isSidebarOpen, toggleSidebar, toggleAgentPanel, isAgentPanelOpen } = useUIStore();
+  const { open: isDesktopSidebarOpen } = useSidebar();
 
   // Sync search input with URL query param so it stays populated
   const urlQuery = searchParams.get("q") || "";
@@ -56,7 +57,7 @@ export default function Header() {
   const isSettingsActive = location.pathname.includes("/settings");
 
   return (
-    <header className="flex items-center gap-2 px-3 py-2.5 bg-kumo-base border-b border-kumo-line sticky top-0 z-10 md:px-5 md:gap-4">
+    <header className="h-16 flex items-center gap-2 bg-kumo-base border-b border-kumo-line sticky top-0 z-10 md:px-5 md:gap-4">
       {/* Hamburger menu - mobile only */}
       <Button
         variant="ghost"
@@ -68,6 +69,18 @@ export default function Header() {
         aria-expanded={isSidebarOpen}
         aria-controls="folder-sidebar"
         className="md:hidden shrink-0"
+      />
+
+      <Tooltip
+        content={isDesktopSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+        render={
+          <KumoSidebar.Trigger
+            aria-label={isDesktopSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+            aria-expanded={isDesktopSidebarOpen}
+            aria-controls="folder-sidebar"
+            className="hidden md:inline-flex shrink-0"
+          />
+        }
       />
 
       {/* Search - full on desktop, collapsible on mobile */}

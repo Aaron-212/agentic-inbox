@@ -111,29 +111,27 @@ export default function Sidebar() {
   return (
     <KumoSidebar id="folder-sidebar" aria-label="Mailbox folders" className="max-md:max-w-5/6">
       {/* Back + identity */}
-      <KumoSidebar.Header className="h-auto flex-col items-stretch border-0 px-4 pt-4 pb-1">
-        <div className="flex items-center justify-between mb-2.5">
-          <button
-            type="button"
-            onClick={() => {
-              navigate("/");
-              closeSidebar();
-            }}
-            className="flex items-center gap-1.5 text-kumo-subtle text-sm hover:text-kumo-default transition-colors cursor-pointer bg-transparent border-0 p-0"
-          >
-            <CaretLeftIcon size={14} />
-            <span>Mailboxes</span>
-          </button>
-          <KumoSidebar.Close className="md:hidden" />
-        </div>
-        <div className="px-1">
+      <KumoSidebar.Header className="h-16 flex-row items-center gap-4">
+        <Button
+          shape="square"
+          variant="outline"
+          size="md"
+          onClick={() => {
+            navigate("/");
+            closeSidebar();
+          }}
+          icon={<CaretLeftIcon size={16} />}
+          aria-label="Back to mailboxes"
+        />
+        <KumoSidebar.Close className="md:hidden" />
+        <div className="flex flex-col">
           <div className="text-base font-semibold text-kumo-default truncate">{displayName}</div>
-          <div className="text-sm text-kumo-subtle truncate mt-0.5">{currentMailbox?.email || mailboxId}</div>
+          <div className="text-sm text-kumo-subtle truncate">{currentMailbox?.email || mailboxId}</div>
         </div>
       </KumoSidebar.Header>
 
       {/* Compose */}
-      <div className="px-3 py-3">
+      <div className="p-4">
         <Button
           variant="primary"
           icon={<PencilSimpleIcon size={16} />}
@@ -161,7 +159,7 @@ export default function Sidebar() {
           </KumoSidebar.Menu>
 
           <KumoSidebar.Group className="pt-5">
-            <div className="flex items-center justify-between px-3 mb-1.5">
+            <div className="flex items-center justify-between">
               <KumoSidebar.GroupLabel>Folders</KumoSidebar.GroupLabel>
               <Tooltip
                 content="New folder"
