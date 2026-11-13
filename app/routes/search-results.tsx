@@ -30,7 +30,7 @@ function highlightTerms(text: string, query: string): React.ReactNode {
     const lowerEscaped = escaped.toLowerCase();
     return parts.map((part, i) =>
       part.toLowerCase() === lowerEscaped ? (
-        <mark key={i} className="bg-kumo-warning-muted text-kumo-default rounded-sm px-0.5">
+        <mark key={i} className="bg-kumo-warning-tint text-kumo-default rounded-sm px-0.5">
           {part}
         </mark>
       ) : (
@@ -90,16 +90,20 @@ export default function SearchResultsRoute() {
     <MailboxSplitView selectedEmailId={selectedEmailId} isComposing={isComposing}>
       <>
         <div className="flex items-center gap-2 px-4 py-3.5 border-b border-kumo-line shrink-0 md:px-5">
-          <Tooltip content="Back to inbox" side="bottom" asChild>
-            <Button
-              variant="ghost"
-              shape="square"
-              size="sm"
-              icon={<ArrowLeftIcon size={18} />}
-              onClick={() => navigate(`/mailbox/${mailboxId}/emails/inbox`)}
-              aria-label="Back to inbox"
-            />
-          </Tooltip>
+          <Tooltip
+            content="Back to inbox"
+            side="bottom"
+            render={
+              <Button
+                variant="ghost"
+                shape="square"
+                size="sm"
+                icon={<ArrowLeftIcon size={18} />}
+                onClick={() => navigate(`/mailbox/${mailboxId}/emails/inbox`)}
+                aria-label="Back to inbox"
+              />
+            }
+          />
           <div className="min-w-0 flex-1">
             <h1 className="text-lg font-semibold text-kumo-default truncate">Search Results</h1>
             {!isLoading && (
@@ -161,7 +165,7 @@ export default function SearchResultsRoute() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span
-                          className={`truncate text-sm ${!email.read ? "font-semibold text-kumo-default" : "text-kumo-strong"}`}
+                          className={`truncate text-sm ${!email.read ? "font-semibold text-kumo-default" : "text-kumo-subtle"}`}
                         >
                           {highlightTerms(email.sender.split("@")[0], urlQuery)}
                         </span>
@@ -187,7 +191,12 @@ export default function SearchResultsRoute() {
         </div>
         {totalCount > SEARCH_PAGE_SIZE && (
           <div className="flex justify-center py-3 border-t border-kumo-line shrink-0">
-            <Pagination page={currentPage} setPage={setPage} perPage={SEARCH_PAGE_SIZE} totalCount={totalCount} />
+            <Pagination page={currentPage} setPage={setPage} perPage={SEARCH_PAGE_SIZE} totalCount={totalCount}>
+              <div className="grow" aria-live="polite" aria-atomic="true">
+                <Pagination.Info />
+              </div>
+              <Pagination.Controls />
+            </Pagination>
           </div>
         )}
       </>

@@ -39,8 +39,8 @@ importers:
         specifier: ^0.1.9
         version: 0.1.9(@ai-sdk/react@3.0.333(react@19.3.1)(zod@4.6.7))(agents@0.7.9)(ai@6.0.330(zod@4.6.7))(react@19.3.1)(zod@4.6.7)
       '@cloudflare/kumo':
-        specifier: ^1.19.0
-        version: 1.19.0(@date-fns/tz@1.5.0)(@phosphor-icons/react@2.1.10(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@types/react@19.3.0)(date-fns@4.4.0)(echarts@6.1.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(zod@4.6.7)
+        specifier: ^2.18.1
+        version: 2.18.1(@date-fns/tz@1.5.0)(@phosphor-icons/react@2.1.10(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@types/react@19.3.0)(date-fns@4.4.0)(echarts@6.1.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(zod@4.6.7)
       '@modelcontextprotocol/sdk':
         specifier: ^1.32.0
         version: 1.32.2(@cfworker/json-schema@4.1.6)(supports-color@10.2.2)(zod@4.6.7)
@@ -379,8 +379,8 @@ packages:
       react: ^19.0.0
       zod: ^3.25.0 || ^4.0.0
 
-  '@cloudflare/kumo@1.19.0':
-    resolution: {integrity: sha512-Ob91fqIbVwXMk/DTrod8oqs/uLiHOA1AbddJxfoPAuKRSjvVeImck34aow6ZJhWrfJi3uxLFOAI3569r5QFE0A==}
+  '@cloudflare/kumo@2.18.1':
+    resolution: {integrity: sha512-4thA46YVeFL8XYawypTgzlrK5RQVgUWYxXZFm3PPlXiYA6aZFFDXJquxNrl7B27u9ZJNaD7EFxEKKtq90FAcow==}
     hasBin: true
     peerDependencies:
       '@phosphor-icons/react': ^2.1.10
@@ -389,6 +389,8 @@ packages:
       react-dom: ^18.0.0 || ^19.0.0
       zod: ^4.0.0
     peerDependenciesMeta:
+      echarts:
+        optional: true
       zod:
         optional: true
 
@@ -1940,9 +1942,10 @@ packages:
     resolution: {integrity: sha512-k7ndgKhwoQveBL+/1tqGJYNz097I7WOvwbmmU2AR5+magtbjPWQTS1C5vzGkBC8Ym8UWRzfKUzUUqFLypY4Q+w==}
     engines: {node: '>=20'}
 
-  clsx@2.1.1:
-    resolution: {integrity: sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==}
-    engines: {node: '>=6'}
+  cn@0.4.0:
+    resolution: {integrity: sha512-qOAeUhPwPzBxx6jaeQdo646XIKliKHc2j1ZF7Ngb1o0pJZKH5gq8FkA0aVdUdPFUDXNXyUCXpCtoJISo6dhizg==}
+    engines: {node: '>=20'}
+    hasBin: true
 
   comma-separated-tokens@2.0.3:
     resolution: {integrity: sha512-Fu4hJdvzeylCfQPp9SGWidpzrMs7tTrlu6Vb8XGaRGck8QSNZJJp538Wrb60Lax4fPwR64ViY468OIUTbRlGZg==}
@@ -1994,6 +1997,14 @@ packages:
 
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
+
+  d3-array@3.2.5:
+    resolution: {integrity: sha512-Th8qGXoBalmWsstpkuhmBuTsBQIFqYOJtjlBvNVvBfJ8E3uYusBUwUR8HU20U0qKKQkgCvKyR1YjiozWadk5QA==}
+    engines: {node: '>=12'}
+
+  d3-geo@3.1.2:
+    resolution: {integrity: sha512-5R8ZgDQorIxmauv7R6gpE/ndz+Z0qAZssigq0aXFdvPHdY41RqtW02jrRUQAL724NdPABYXo1+gQEGBBr7uKNg==}
+    engines: {node: '>=12'}
 
   date-fns-jalali@4.1.0-0:
     resolution: {integrity: sha512-hTIP/z+t+qKwBDcmmsnmjWTduxCg+5KfdqWQvb2X/8C9+knYY6epN/pfxdDuyVlSVeFz0sM5eEfwIUQ70U4ckg==}
@@ -2358,6 +2369,10 @@ packages:
 
   inline-style-parser@0.2.9:
     resolution: {integrity: sha512-IttN8BqKLxzUrnTqHI+/hwAJQItBAUjdoHERCDv+oOuX48VP6bzW8+QjOXSfoevzq3YrYAwX1uLHp8TqO9yIeg==}
+
+  internmap@2.0.3:
+    resolution: {integrity: sha512-5Hh7Y1wQbvY5ooGgPbDaL5iYLAPzMTUrjMulskHLH6wnv/A+1q5rgEaiuqEjB+oxGXIVZs1FF+R/KPN3ZSQYYg==}
+    engines: {node: '>=12'}
 
   ip-address@10.7.6:
     resolution: {integrity: sha512-00LYkM6byILa9eQIx6qoaXCM40xTLd56AZ4vyaPW3YTyb49VZYPo5xsiAq4tuQ54GH4R7gVdYScJ1B7B77PuTg==}
@@ -3123,9 +3138,6 @@ packages:
     peerDependencies:
       react: ^16.11.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
-  tailwind-merge@3.7.0:
-    resolution: {integrity: sha512-XPPUyAc+cvspz3lHTcR/QgPfW2A0lv/xQNIjX3HGhLR+Nq2lHaLq5MtTesHn8GUr3W3DguT2KT5x3NVgRtYwmA==}
-
   tailwindcss@4.3.5:
     resolution: {integrity: sha512-FcQk9BuffmEHJP2G0XmB2SplU1aLTI7j07Kunk+U74Ny+XiWOtzXz9aujFZ/avntw1e2cOv/3PkgzflQ7gX2vQ==}
 
@@ -3692,21 +3704,22 @@ snapshots:
       react: 19.3.1
       zod: 4.6.7
 
-  '@cloudflare/kumo@1.19.0(@date-fns/tz@1.5.0)(@phosphor-icons/react@2.1.10(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@types/react@19.3.0)(date-fns@4.4.0)(echarts@6.1.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(zod@4.6.7)':
+  '@cloudflare/kumo@2.18.1(@date-fns/tz@1.5.0)(@phosphor-icons/react@2.1.10(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@types/react@19.3.0)(date-fns@4.4.0)(echarts@6.1.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(zod@4.6.7)':
     dependencies:
       '@base-ui/react': 1.9.0(@date-fns/tz@1.5.0)(@types/react@19.3.0)(date-fns@4.4.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@phosphor-icons/react': 2.1.10(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@shikijs/langs': 4.6.0
       '@shikijs/themes': 4.6.0
-      clsx: 2.1.1
-      echarts: 6.1.0
+      cn: 0.4.0
+      d3-geo: 3.1.2
       motion: 12.43.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       react: 19.3.1
       react-day-picker: 9.14.0(react@19.3.1)
       react-dom: 19.3.1(react@19.3.1)
       shiki: 4.6.0
-      tailwind-merge: 3.7.0
+      use-sync-external-store: 1.7.0(react@19.3.1)
     optionalDependencies:
+      echarts: 6.1.0
       zod: 4.6.7
     transitivePeerDependencies:
       - '@date-fns/tz'
@@ -4868,7 +4881,7 @@ snapshots:
       strip-ansi: 7.2.0
       wrap-ansi: 9.0.2
 
-  clsx@2.1.1: {}
+  cn@0.4.0: {}
 
   comma-separated-tokens@2.0.3: {}
 
@@ -4904,6 +4917,14 @@ snapshots:
       which: 2.0.2
 
   csstype@3.2.3: {}
+
+  d3-array@3.2.5:
+    dependencies:
+      internmap: 2.0.3
+
+  d3-geo@3.1.2:
+    dependencies:
+      d3-array: 3.2.5
 
   date-fns-jalali@4.1.0-0: {}
 
@@ -4950,6 +4971,7 @@ snapshots:
     dependencies:
       tslib: 2.3.0
       zrender: 6.1.0
+    optional: true
 
   ee-first@1.1.1: {}
 
@@ -5233,6 +5255,8 @@ snapshots:
   inherits@2.0.4: {}
 
   inline-style-parser@0.2.9: {}
+
+  internmap@2.0.3: {}
 
   ip-address@10.7.6: {}
 
@@ -6307,8 +6331,6 @@ snapshots:
       react: 19.3.1
       use-sync-external-store: 1.7.0(react@19.3.1)
 
-  tailwind-merge@3.7.0: {}
-
   tailwindcss@4.3.5: {}
 
   tapable@2.3.3: {}
@@ -6332,7 +6354,8 @@ snapshots:
     optionalDependencies:
       typescript: 5.9.3
 
-  tslib@2.3.0: {}
+  tslib@2.3.0:
+    optional: true
 
   tslib@2.9.1: {}
 
@@ -6549,6 +6572,7 @@ snapshots:
   zrender@6.1.0:
     dependencies:
       tslib: 2.3.0
+    optional: true
 
   zustand@5.1.0(@types/react@19.3.0)(react@19.3.1)(use-sync-external-store@1.7.0(react@19.3.1)):
     optionalDependencies:

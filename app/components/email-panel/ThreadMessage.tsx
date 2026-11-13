@@ -110,17 +110,21 @@ export default function ThreadMessage({
           <div className="flex items-center gap-1 shrink-0">
             <span className="text-xs text-kumo-subtle">{formatShortDate(email.date)}</span>
             {onViewSource && (
-              <Tooltip content="View source" side="bottom" asChild>
-                <Button
-                  variant="ghost"
-                  shape="square"
-                  size="sm"
-                  icon={<CodeIcon size={14} />}
-                  onClick={onViewSource}
-                  aria-label="View source"
-                  className="transition-opacity !h-6 !w-6"
-                />
-              </Tooltip>
+              <Tooltip
+                content="View source"
+                side="bottom"
+                render={
+                  <Button
+                    variant="ghost"
+                    shape="square"
+                    size="sm"
+                    icon={<CodeIcon size={14} />}
+                    onClick={onViewSource}
+                    aria-label="View source"
+                    className="transition-opacity !h-6 !w-6"
+                  />
+                }
+              />
             )}
             <button type="button" onClick={onToggleExpand} className="ml-1" aria-label="Collapse message">
               <CaretUpIcon size={14} className="text-kumo-subtle hover:text-kumo-default transition-colors" />

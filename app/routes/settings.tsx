@@ -154,7 +154,7 @@ export default function SettingsRoute() {
             onChange={(e) => setAgentPrompt(e.target.value)}
             placeholder={PROMPT_PLACEHOLDER}
             rows={12}
-            className="w-full resize-y rounded-lg border border-kumo-line bg-kumo-recessed px-3 py-2 text-xs text-kumo-default placeholder:text-kumo-subtle focus:outline-none focus:ring-1 focus:ring-kumo-ring font-mono leading-relaxed"
+            className="w-full resize-y rounded-lg border border-kumo-line bg-kumo-recessed px-3 py-2 text-xs text-kumo-default placeholder:text-kumo-subtle focus:outline-none focus:ring-1 focus:ring-kumo-focus font-mono leading-relaxed"
           />
           <p className="text-xs text-kumo-subtle mt-2">
             The prompt is sent as the system message to the AI model. It controls the agent's personality, writing

@@ -74,7 +74,7 @@ function ToolCallBadge({ toolName, state }: { toolName: string; state: string })
   return (
     <div className="flex items-center gap-1.5 py-1 px-2 rounded bg-kumo-fill/50 text-xs">
       <span className="text-kumo-brand">{info.icon}</span>
-      <span className="text-kumo-strong">{info.label}</span>
+      <span className="text-kumo-subtle">{info.label}</span>
       {isDone ? (
         <CheckCircleIcon size={12} weight="fill" className="text-kumo-success ml-auto" />
       ) : (
@@ -266,20 +266,23 @@ function AgentChatConnected({
         <div className="flex items-center gap-1">
           {isStreaming && <Loader size="sm" />}
           {messages.length > 0 && (
-            <Tooltip content="Clear chat" asChild>
-              <Button
-                variant="ghost"
-                shape="square"
-                size="sm"
-                icon={<TrashIcon size={14} />}
-                onClick={() => {
-                  if (window.confirm("Clear chat history?")) {
-                    setMessages([]);
-                  }
-                }}
-                aria-label="Clear chat"
-              />
-            </Tooltip>
+            <Tooltip
+              content="Clear chat"
+              render={
+                <Button
+                  variant="ghost"
+                  shape="square"
+                  size="sm"
+                  icon={<TrashIcon size={14} />}
+                  onClick={() => {
+                    if (window.confirm("Clear chat history?")) {
+                      setMessages([]);
+                    }
+                  }}
+                  aria-label="Clear chat"
+                />
+              }
+            />
           )}
         </div>
       </div>
@@ -300,7 +303,7 @@ function AgentChatConnected({
                   key={prompt}
                   type="button"
                   onClick={() => sendMessage({ text: prompt })}
-                  className="text-left px-3 py-2 rounded-lg border border-kumo-line text-xs text-kumo-strong hover:bg-kumo-tint hover:border-kumo-fill-hover transition-colors cursor-pointer bg-transparent"
+                  className="text-left px-3 py-2 rounded-lg border border-kumo-line text-xs text-kumo-subtle hover:bg-kumo-tint hover:border-kumo-fill-hover transition-colors cursor-pointer bg-transparent"
                 >
                   {prompt}
                 </button>
@@ -389,7 +392,7 @@ function AgentChatConnected({
               placeholder="Ask your email agent..."
               rows={1}
               aria-label="Chat message input"
-              className="flex-1 resize-none rounded-lg border border-kumo-line bg-kumo-control px-3 py-2 text-xs text-kumo-default placeholder:text-kumo-subtle focus:outline-none focus:ring-1 focus:ring-kumo-ring min-h-[36px] max-h-[100px]"
+              className="flex-1 resize-none rounded-lg border border-kumo-line bg-kumo-control px-3 py-2 text-xs text-kumo-default placeholder:text-kumo-subtle focus:outline-none focus:ring-1 focus:ring-kumo-focus min-h-[36px] max-h-[100px]"
               style={{ height: "auto", overflow: "hidden" }}
               onInput={(e) => {
                 const t = e.target as HTMLTextAreaElement;
@@ -440,7 +443,7 @@ export default function AgentPanel() {
   if (loadError) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-2 px-4 text-center">
-        <span className="text-xs text-kumo-error">{loadError}</span>
+        <span className="text-xs text-kumo-danger">{loadError}</span>
       </div>
     );
   }

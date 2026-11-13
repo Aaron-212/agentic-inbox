@@ -52,7 +52,7 @@ function FolderLink({ to, icon, label, unreadCount, onClick }: FolderLinkProps) 
       onClick={onClick}
       className={({ isActive }) =>
         `flex items-center gap-3 py-2 px-3 rounded-md text-sm transition-colors ${
-          isActive ? "bg-kumo-fill font-semibold text-kumo-default" : "text-kumo-strong hover:bg-kumo-tint"
+          isActive ? "bg-kumo-fill font-semibold text-kumo-default" : "text-kumo-subtle hover:bg-kumo-tint"
         }`
       }
     >
@@ -160,16 +160,19 @@ export default function Sidebar() {
           <div className="pt-5">
             <div className="flex items-center justify-between px-3 mb-1.5">
               <span className="text-xs uppercase tracking-wider font-semibold text-kumo-subtle">Folders</span>
-              <Tooltip content="New folder" asChild>
-                <Button
-                  variant="ghost"
-                  shape="square"
-                  size="sm"
-                  icon={<PlusIcon size={16} />}
-                  onClick={() => setIsCreateFolderOpen(true)}
-                  aria-label="Create new folder"
-                />
-              </Tooltip>
+              <Tooltip
+                content="New folder"
+                render={
+                  <Button
+                    variant="ghost"
+                    shape="square"
+                    size="sm"
+                    icon={<PlusIcon size={16} />}
+                    onClick={() => setIsCreateFolderOpen(true)}
+                    aria-label="Create new folder"
+                  />
+                }
+              />
             </div>
             {customFolders.map((folder) => (
               <FolderLink
@@ -189,16 +192,19 @@ export default function Sidebar() {
           <div className="pt-5">
             <div className="flex items-center justify-between px-3 mb-1.5">
               <span className="text-xs uppercase tracking-wider font-semibold text-kumo-subtle">Folders</span>
-              <Tooltip content="New folder" asChild>
-                <Button
-                  variant="ghost"
-                  shape="square"
-                  size="sm"
-                  icon={<PlusIcon size={16} />}
-                  onClick={() => setIsCreateFolderOpen(true)}
-                  aria-label="Create new folder"
-                />
-              </Tooltip>
+              <Tooltip
+                content="New folder"
+                render={
+                  <Button
+                    variant="ghost"
+                    shape="square"
+                    size="sm"
+                    icon={<PlusIcon size={16} />}
+                    onClick={() => setIsCreateFolderOpen(true)}
+                    aria-label="Create new folder"
+                  />
+                }
+              />
             </div>
           </div>
         )}

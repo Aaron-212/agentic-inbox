@@ -98,11 +98,13 @@ export default function EmailPanelDialogs({
             </div>
           )}
           <div className="flex justify-end mt-4">
-            <Dialog.Close>
-              <Button variant="secondary" size="sm">
-                Close
-              </Button>
-            </Dialog.Close>
+            <Dialog.Close
+              render={
+                <Button variant="secondary" size="sm">
+                  Close
+                </Button>
+              }
+            />
           </div>
         </Dialog>
       </Dialog.Root>
@@ -136,11 +138,13 @@ export default function EmailPanelDialogs({
             >
               Download Original
             </Button>
-            <Dialog.Close>
-              <Button variant="primary" size="sm">
-                Close
-              </Button>
-            </Dialog.Close>
+            <Dialog.Close
+              render={
+                <Button variant="primary" size="sm">
+                  Close
+                </Button>
+              }
+            />
           </div>
         </Dialog>
       </Dialog.Root>

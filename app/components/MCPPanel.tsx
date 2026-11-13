@@ -21,16 +21,19 @@ function CopyButton({ text }: { text: string }) {
   };
 
   return (
-    <Tooltip content={copied ? "Copied!" : "Copy"} asChild>
-      <Button
-        variant="ghost"
-        shape="square"
-        size="sm"
-        icon={copied ? <CheckIcon size={12} weight="bold" className="text-kumo-success" /> : <CopyIcon size={12} />}
-        onClick={handleCopy}
-        aria-label="Copy to clipboard"
-      />
-    </Tooltip>
+    <Tooltip
+      content={copied ? "Copied!" : "Copy"}
+      render={
+        <Button
+          variant="ghost"
+          shape="square"
+          size="sm"
+          icon={copied ? <CheckIcon size={12} weight="bold" className="text-kumo-success" /> : <CopyIcon size={12} />}
+          onClick={handleCopy}
+          aria-label="Copy to clipboard"
+        />
+      }
+    />
   );
 }
 
@@ -75,7 +78,7 @@ export default function MCPPanel() {
 
         {/* MCP URL */}
         <div className="space-y-1.5">
-          <label className="text-xs font-medium text-kumo-strong block">Server URL</label>
+          <label className="text-xs font-medium text-kumo-subtle block">Server URL</label>
           <div className="relative group">
             <div className="absolute right-1.5 top-1/2 -translate-y-1/2">
               <CopyButton text={mcpUrl} />

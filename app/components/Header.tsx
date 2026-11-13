@@ -94,15 +94,19 @@ export default function Header() {
             </button>
           )}
         </div>
-        <Tooltip content="Search" side="bottom" asChild>
-          <Button
-            variant="ghost"
-            shape="square"
-            icon={<MagnifyingGlassIcon size={20} />}
-            onClick={performSearch}
-            aria-label="Search"
-          />
-        </Tooltip>
+        <Tooltip
+          content="Search"
+          side="bottom"
+          render={
+            <Button
+              variant="ghost"
+              shape="square"
+              icon={<MagnifyingGlassIcon size={20} />}
+              onClick={performSearch}
+              aria-label="Search"
+            />
+          }
+        />
       </div>
 
       {/* Search toggle button - mobile only, hidden when search is expanded */}
@@ -119,27 +123,35 @@ export default function Header() {
       )}
 
       <div className="flex items-center gap-1 ml-auto shrink-0">
-        <Tooltip content={isAgentPanelOpen ? "Hide agent panel" : "Show agent panel"} side="bottom" asChild>
-          <Button
-            variant={isAgentPanelOpen ? "secondary" : "ghost"}
-            shape="square"
-            icon={<RobotIcon size={20} />}
-            onClick={toggleAgentPanel}
-            aria-label="Toggle agent panel"
-            className="hidden lg:inline-flex"
-          />
-        </Tooltip>
-        <Tooltip content="Settings" side="bottom" asChild>
-          <Button
-            variant={isSettingsActive ? "secondary" : "ghost"}
-            shape="square"
-            icon={<GearSixIcon size={20} />}
-            onClick={() =>
-              navigate(isSettingsActive ? `/mailbox/${mailboxId}/emails/inbox` : `/mailbox/${mailboxId}/settings`)
-            }
-            aria-label="Settings"
-          />
-        </Tooltip>
+        <Tooltip
+          content={isAgentPanelOpen ? "Hide agent panel" : "Show agent panel"}
+          side="bottom"
+          render={
+            <Button
+              variant={isAgentPanelOpen ? "secondary" : "ghost"}
+              shape="square"
+              icon={<RobotIcon size={20} />}
+              onClick={toggleAgentPanel}
+              aria-label="Toggle agent panel"
+              className="hidden lg:inline-flex"
+            />
+          }
+        />
+        <Tooltip
+          content="Settings"
+          side="bottom"
+          render={
+            <Button
+              variant={isSettingsActive ? "secondary" : "ghost"}
+              shape="square"
+              icon={<GearSixIcon size={20} />}
+              onClick={() =>
+                navigate(isSettingsActive ? `/mailbox/${mailboxId}/emails/inbox` : `/mailbox/${mailboxId}/settings`)
+              }
+              aria-label="Settings"
+            />
+          }
+        />
       </div>
     </header>
   );

@@ -243,17 +243,21 @@ export default function EmailListRoute() {
               {totalCount} conversation{totalCount !== 1 ? "s" : ""}
             </span>
           )}
-          <Tooltip content={isRefreshing ? "Refreshing..." : "Refresh"} side="bottom" asChild>
-            <Button
-              variant="ghost"
-              shape="square"
-              size="sm"
-              icon={<ArrowsClockwiseIcon size={18} className={isRefreshing ? "animate-spin" : ""} />}
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              aria-label="Refresh"
-            />
-          </Tooltip>
+          <Tooltip
+            content={isRefreshing ? "Refreshing..." : "Refresh"}
+            side="bottom"
+            render={
+              <Button
+                variant="ghost"
+                shape="square"
+                size="sm"
+                icon={<ArrowsClockwiseIcon size={18} className={isRefreshing ? "animate-spin" : ""} />}
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                aria-label="Refresh"
+              />
+            }
+          />
         </div>
       </div>
 
@@ -307,7 +311,7 @@ export default function EmailListRoute() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <span
-                        className={`truncate text-sm ${hasUnread(email) ? "font-semibold text-kumo-default" : "text-kumo-strong"}`}
+                        className={`truncate text-sm ${hasUnread(email) ? "font-semibold text-kumo-default" : "text-kumo-subtle"}`}
                       >
                         {formatParticipants(email)}
                       </span>
@@ -316,15 +320,16 @@ export default function EmailListRoute() {
                           {email.thread_count}
                         </span>
                       )}
-                      {email.has_draft && (
-                        <span className="shrink-0 text-xs text-kumo-destructive font-medium">Draft</span>
-                      )}
+                      {email.has_draft && <span className="shrink-0 text-xs text-kumo-danger font-medium">Draft</span>}
                       {email.needs_reply && !email.has_draft && (
-                        <Tooltip content="Needs reply" asChild>
-                          <span className="shrink-0 text-kumo-warning">
-                            <ArrowBendUpLeftIcon size={14} weight="bold" />
-                          </span>
-                        </Tooltip>
+                        <Tooltip
+                          content="Needs reply"
+                          render={
+                            <span className="shrink-0 text-kumo-warning">
+                              <ArrowBendUpLeftIcon size={14} weight="bold" />
+                            </span>
+                          }
+                        />
                       )}
                       <span className="text-sm text-kumo-subtle shrink-0 ml-auto">{formatListDate(email.date)}</span>
                     </div>
@@ -338,34 +343,40 @@ export default function EmailListRoute() {
 
                   {/* Hover actions */}
                   <div className="hidden group-hover:flex items-center shrink-0">
-                    <Tooltip content={email.read ? "Mark unread" : "Mark read"} asChild>
-                      <Button
-                        variant="ghost"
-                        shape="square"
-                        size="sm"
-                        icon={email.read ? <EnvelopeSimpleIcon size={14} /> : <EnvelopeOpenIcon size={14} />}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (mailboxId)
-                            updateEmail.mutate({
-                              mailboxId,
-                              id: email.id,
-                              data: { read: !email.read },
-                            });
-                        }}
-                        aria-label={email.read ? "Mark unread" : "Mark read"}
-                      />
-                    </Tooltip>
-                    <Tooltip content="Delete" asChild>
-                      <Button
-                        variant="ghost"
-                        shape="square"
-                        size="sm"
-                        icon={<TrashIcon size={14} />}
-                        onClick={(e) => handleDelete(e, email.id)}
-                        aria-label="Delete"
-                      />
-                    </Tooltip>
+                    <Tooltip
+                      content={email.read ? "Mark unread" : "Mark read"}
+                      render={
+                        <Button
+                          variant="ghost"
+                          shape="square"
+                          size="sm"
+                          icon={email.read ? <EnvelopeSimpleIcon size={14} /> : <EnvelopeOpenIcon size={14} />}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (mailboxId)
+                              updateEmail.mutate({
+                                mailboxId,
+                                id: email.id,
+                                data: { read: !email.read },
+                              });
+                          }}
+                          aria-label={email.read ? "Mark unread" : "Mark read"}
+                        />
+                      }
+                    />
+                    <Tooltip
+                      content="Delete"
+                      render={
+                        <Button
+                          variant="ghost"
+                          shape="square"
+                          size="sm"
+                          icon={<TrashIcon size={14} />}
+                          onClick={(e) => handleDelete(e, email.id)}
+                          aria-label="Delete"
+                        />
+                      }
+                    />
                   </div>
                 </div>
               );
@@ -379,7 +390,12 @@ export default function EmailListRoute() {
       {/* Pagination */}
       {totalCount > PAGE_SIZE && (
         <div className="flex justify-center py-3 border-t border-kumo-line shrink-0">
-          <Pagination page={page} setPage={setPage} perPage={PAGE_SIZE} totalCount={totalCount} />
+          <Pagination page={page} setPage={setPage} perPage={PAGE_SIZE} totalCount={totalCount}>
+            <div className="grow" aria-live="polite" aria-atomic="true">
+              <Pagination.Info />
+            </div>
+            <Pagination.Controls />
+          </Pagination>
         </div>
       )}
     </MailboxSplitView>

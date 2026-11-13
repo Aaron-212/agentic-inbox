@@ -56,7 +56,7 @@ export default function ComposePanel() {
 
       <form onSubmit={(e) => handleSend(e, closePanel)} className="flex flex-col flex-1 min-h-0 overflow-y-auto">
         <div className="p-4 md:p-6 space-y-4">
-          {error && <Banner variant="error" text={error} />}
+          {error && <Banner variant="error" description={error} />}
 
           <div className="space-y-3">
             <div className="flex items-center gap-2">
@@ -74,7 +74,7 @@ export default function ComposePanel() {
                   <button
                     type="button"
                     onClick={() => setShowCcBcc(true)}
-                    className="shrink-0 text-xs text-kumo-link hover:text-kumo-link-hover font-medium"
+                    className="shrink-0 text-xs text-kumo-link hover:underline font-medium"
                   >
                     CC / BCC
                   </button>

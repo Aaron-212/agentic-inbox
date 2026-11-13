@@ -43,7 +43,7 @@ export default function ComposeEmail() {
       <Dialog size="lg" className="p-6 max-h-[85vh] overflow-y-auto">
         <Dialog.Title className="text-lg font-semibold mb-5">{formTitle}</Dialog.Title>
         <form onSubmit={(e) => handleSend(e, closeComposeModal)} className="space-y-4">
-          {error && <Banner variant="error" text={error} />}
+          {error && <Banner variant="error" description={error} />}
           <div className="flex items-center gap-2">
             <div className="flex-1">
               <Input
@@ -60,7 +60,7 @@ export default function ComposeEmail() {
               <button
                 type="button"
                 onClick={() => setShowCcBcc(true)}
-                className="shrink-0 text-xs text-kumo-link hover:text-kumo-link-hover font-medium mt-5"
+                className="shrink-0 text-xs text-kumo-link hover:underline font-medium mt-5"
               >
                 CC / BCC
               </button>
