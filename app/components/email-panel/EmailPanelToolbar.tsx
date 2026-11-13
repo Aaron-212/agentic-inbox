@@ -107,20 +107,26 @@ export default function EmailPanelToolbar({
               />
             }
           />
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            icon={<SparkleIcon size={16} />}
-            onClick={() => {
-              if (!isGeneratingAIReply) onDraftAIReply();
-            }}
-            loading={isGeneratingAIReply}
-            aria-disabled={isGeneratingAIReply}
-            aria-busy={isGeneratingAIReply}
-          >
-            Draft an AI reply
-          </Button>
+          <Tooltip
+            content="Draft reply with AI"
+            side="bottom"
+            render={
+              <Button
+                type="button"
+                variant="ghost"
+                shape="square"
+                size="sm"
+                icon={<SparkleIcon size={18} aria-hidden="true" />}
+                onClick={() => {
+                  if (!isGeneratingAIReply) onDraftAIReply();
+                }}
+                loading={isGeneratingAIReply}
+                aria-label="Draft reply with AI"
+                aria-disabled={isGeneratingAIReply}
+                aria-busy={isGeneratingAIReply}
+              />
+            }
+          />
           <Tooltip
             content="Reply All"
             side="bottom"
