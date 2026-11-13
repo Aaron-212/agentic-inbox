@@ -15,7 +15,7 @@ export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const { toggleSidebar, toggleAgentPanel, isAgentPanelOpen } = useUIStore();
+  const { isSidebarOpen, toggleSidebar, toggleAgentPanel, isAgentPanelOpen } = useUIStore();
 
   // Sync search input with URL query param so it stays populated
   const urlQuery = searchParams.get("q") || "";
@@ -65,6 +65,8 @@ export default function Header() {
         icon={<ListIcon size={20} />}
         onClick={toggleSidebar}
         aria-label="Toggle sidebar"
+        aria-expanded={isSidebarOpen}
+        aria-controls="folder-sidebar"
         className="md:hidden shrink-0"
       />
 

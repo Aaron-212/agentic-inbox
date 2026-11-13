@@ -2,7 +2,7 @@
 // Licensed under the Apache 2.0 license found in the LICENSE file or at:
 //     https://opensource.org/licenses/Apache-2.0
 
-import { Badge, Button, Dialog, Input, Tooltip } from "@cloudflare/kumo";
+import { Badge, Button, Dialog, Input, Sidebar as KumoSidebar, Tooltip } from "@cloudflare/kumo";
 import {
   ArchiveIcon,
   CaretLeftIcon,
@@ -15,7 +15,7 @@ import {
   TrayIcon,
 } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
-import { NavLink, useNavigate, useParams } from "react-router";
+import { useMatch, useNavigate, useParams } from "react-router";
 import { Folders, SYSTEM_FOLDER_IDS } from "shared/folders";
 import { useCreateFolder, useFolders } from "~/queries/folders";
 import { useMailbox } from "~/queries/mailboxes";
@@ -46,20 +46,19 @@ interface FolderLinkProps {
 }
 
 function FolderLink({ to, icon, label, unreadCount, onClick }: FolderLinkProps) {
+  const match = useMatch(`${to}/*`);
+
   return (
-    <NavLink
-      to={to}
+    <KumoSidebar.MenuButton
+      href={to}
+      icon={icon}
+      active={match !== null}
+      aria-current={match ? "page" : undefined}
       onClick={onClick}
-      className={({ isActive }) =>
-        `flex items-center gap-3 py-2 px-3 rounded-md text-sm transition-colors ${
-          isActive ? "bg-kumo-fill font-semibold text-kumo-default" : "text-kumo-subtle hover:bg-kumo-tint"
-        }`
-      }
     >
-      <span className="shrink-0">{icon}</span>
       <span className="truncate flex-1">{label}</span>
       {unreadCount != null && unreadCount > 0 && <Badge variant="secondary">{unreadCount}</Badge>}
-    </NavLink>
+    </KumoSidebar.MenuButton>
   );
 }
 
@@ -110,25 +109,28 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="h-full w-64 bg-kumo-recessed flex flex-col shrink-0 border-r border-kumo-line">
+    <KumoSidebar id="folder-sidebar" aria-label="Mailbox folders" className="max-md:max-w-5/6">
       {/* Back + identity */}
-      <div className="px-4 pt-4 pb-1">
-        <button
-          type="button"
-          onClick={() => {
-            navigate("/");
-            closeSidebar();
-          }}
-          className="flex items-center gap-1.5 text-kumo-subtle text-sm hover:text-kumo-default transition-colors mb-2.5 cursor-pointer bg-transparent border-0 p-0"
-        >
-          <CaretLeftIcon size={14} />
-          <span>Mailboxes</span>
-        </button>
+      <KumoSidebar.Header className="h-auto flex-col items-stretch border-0 px-4 pt-4 pb-1">
+        <div className="flex items-center justify-between mb-2.5">
+          <button
+            type="button"
+            onClick={() => {
+              navigate("/");
+              closeSidebar();
+            }}
+            className="flex items-center gap-1.5 text-kumo-subtle text-sm hover:text-kumo-default transition-colors cursor-pointer bg-transparent border-0 p-0"
+          >
+            <CaretLeftIcon size={14} />
+            <span>Mailboxes</span>
+          </button>
+          <KumoSidebar.Close className="md:hidden" />
+        </div>
         <div className="px-1">
           <div className="text-base font-semibold text-kumo-default truncate">{displayName}</div>
           <div className="text-sm text-kumo-subtle truncate mt-0.5">{currentMailbox?.email || mailboxId}</div>
         </div>
-      </div>
+      </KumoSidebar.Header>
 
       {/* Compose */}
       <div className="px-3 py-3">
@@ -143,55 +145,24 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-2 space-y-0.5">
-        {SYSTEM_FOLDER_LINKS.map((folder) => (
-          <FolderLink
-            key={folder.id}
-            to={`/mailbox/${mailboxId}/emails/${folder.id}`}
-            icon={FOLDER_ICONS[folder.id]}
-            label={folder.label}
-            unreadCount={getUnreadCount(folder.id)}
-            onClick={handleNavClick}
-          />
-        ))}
-
-        {/* Custom folders */}
-        {customFolders.length > 0 && (
-          <div className="pt-5">
-            <div className="flex items-center justify-between px-3 mb-1.5">
-              <span className="text-xs uppercase tracking-wider font-semibold text-kumo-subtle">Folders</span>
-              <Tooltip
-                content="New folder"
-                render={
-                  <Button
-                    variant="ghost"
-                    shape="square"
-                    size="sm"
-                    icon={<PlusIcon size={16} />}
-                    onClick={() => setIsCreateFolderOpen(true)}
-                    aria-label="Create new folder"
-                  />
-                }
-              />
-            </div>
-            {customFolders.map((folder) => (
+      <KumoSidebar.Content>
+        <nav aria-label="Folders">
+          <KumoSidebar.Menu>
+            {SYSTEM_FOLDER_LINKS.map((folder) => (
               <FolderLink
                 key={folder.id}
                 to={`/mailbox/${mailboxId}/emails/${folder.id}`}
-                icon={<FolderIcon size={18} />}
-                label={folder.name}
-                unreadCount={folder.unreadCount}
+                icon={FOLDER_ICONS[folder.id]}
+                label={folder.label}
+                unreadCount={getUnreadCount(folder.id)}
                 onClick={handleNavClick}
               />
             ))}
-          </div>
-        )}
+          </KumoSidebar.Menu>
 
-        {/* Add folder button when no custom folders */}
-        {customFolders.length === 0 && (
-          <div className="pt-5">
+          <KumoSidebar.Group className="pt-5">
             <div className="flex items-center justify-between px-3 mb-1.5">
-              <span className="text-xs uppercase tracking-wider font-semibold text-kumo-subtle">Folders</span>
+              <KumoSidebar.GroupLabel>Folders</KumoSidebar.GroupLabel>
               <Tooltip
                 content="New folder"
                 render={
@@ -206,9 +177,22 @@ export default function Sidebar() {
                 }
               />
             </div>
-          </div>
-        )}
-      </nav>
+            <KumoSidebar.Menu>
+              {customFolders.map((folder) => (
+                <FolderLink
+                  key={folder.id}
+                  to={`/mailbox/${mailboxId}/emails/${folder.id}`}
+                  icon={<FolderIcon size={18} />}
+                  label={folder.name}
+                  unreadCount={folder.unreadCount}
+                  onClick={handleNavClick}
+                />
+              ))}
+            </KumoSidebar.Menu>
+          </KumoSidebar.Group>
+        </nav>
+      </KumoSidebar.Content>
+      <KumoSidebar.ResizeHandle className="max-md:hidden" />
 
       {/* Create folder dialog */}
       <Dialog.Root open={isCreateFolderOpen} onOpenChange={setIsCreateFolderOpen}>
@@ -237,6 +221,6 @@ export default function Sidebar() {
           </form>
         </Dialog>
       </Dialog.Root>
-    </aside>
+    </KumoSidebar>
   );
 }
