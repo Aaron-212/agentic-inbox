@@ -134,10 +134,10 @@ function MessageBubble({
             return (
               <div
                 key={key}
-                className={`rounded-lg px-3 py-2 text-[13px] leading-relaxed break-words overflow-wrap-anywhere ${
+                className={`rounded-lg px-3 py-2 text-[13px] leading-relaxed wrap-break-word overflow-wrap-anywhere ${
                   isUser
-                    ? "bg-kumo-brand text-kumo-inverse rounded-br-sm"
-                    : "bg-kumo-elevated text-kumo-default border border-kumo-line rounded-bl-sm overflow-hidden"
+                    ? "bg-kumo-brand text-kumo-inverse rounded-tr-sm"
+                    : "bg-kumo-elevated text-kumo-default border border-kumo-line rounded-tl-sm overflow-hidden"
                 }`}
               >
                 {isUser ? (
@@ -362,7 +362,7 @@ function AgentChatConnected({
                 <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-kumo-fill text-kumo-default">
                   <RobotIcon size={12} weight="bold" />
                 </div>
-                <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-kumo-elevated border border-kumo-line rounded-bl-sm">
+                <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-kumo-elevated border border-kumo-line rounded-tl-sm">
                   <Loader size="sm" />
                   <span className="text-xs text-kumo-subtle">Thinking...</span>
                 </div>
