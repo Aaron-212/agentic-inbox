@@ -2,7 +2,7 @@
 // Licensed under the Apache 2.0 license found in the LICENSE file or at:
 //     https://opensource.org/licenses/Apache-2.0
 
-import { Button, Dialog, Empty, Input, Loader, Select, Text, useKumoToastManager } from "@cloudflare/kumo";
+import { Button, Dialog, Empty, Input, LayerDialog, Loader, Select, Text, useKumoToastManager } from "@cloudflare/kumo";
 import { EnvelopeIcon, PlusIcon, TrashIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { type FormEvent, useEffect, useRef, useState } from "react";
@@ -206,72 +206,69 @@ export default function HomeRoute() {
       </div>
 
       {/* Create Dialog */}
-      <Dialog.Root open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <Dialog size="sm" className="p-6">
-          <Dialog.Title className="mb-5 text-base font-semibold">Create New Mailbox</Dialog.Title>
-          <form onSubmit={handleCreate} className="space-y-4">
-            {createError && (
-              <Text variant="error" size="sm">
-                {createError}
-              </Text>
-            )}
-            <div>
-              <span className="text-kumo-default mb-1.5 block text-sm font-medium">Email Address</span>
-              <div className="flex items-center gap-2">
-                <div className="flex-1">
-                  <Input
-                    aria-label="Address prefix"
-                    placeholder="info"
-                    size="sm"
-                    value={newPrefix}
-                    onChange={(e) => setNewPrefix(e.target.value)}
-                    required
-                  />
-                </div>
-                <span className="text-kumo-subtle text-sm">@</span>
-                {domains.length > 1 ? (
+      <LayerDialog.Root open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <LayerDialog.Content>
+          <LayerDialog.Title>Create New Mailbox</LayerDialog.Title>
+          <LayerDialog.Body>
+            <form id="create-mailbox-form" onSubmit={handleCreate} className="space-y-4">
+              {createError && <Text variant="error">{createError}</Text>}
+              <div>
+                <span className="text-kumo-default mb-1.5 block font-medium">Email Address</span>
+                <div className="flex items-center gap-2">
                   <div className="flex-1">
-                    <Select
-                      aria-label="Domain"
-                      value={selectedDomain}
-                      onValueChange={(value) => {
-                        if (value) setSelectedDomain(value);
-                      }}
-                    >
-                      {domains.map((d) => (
-                        <Select.Option key={d} value={d}>
-                          {d}
-                        </Select.Option>
-                      ))}
-                    </Select>
+                    <Input
+                      aria-label="Address prefix"
+                      placeholder="info"
+                      value={newPrefix}
+                      onChange={(e) => setNewPrefix(e.target.value)}
+                      required
+                      className="w-full"
+                    />
                   </div>
-                ) : (
-                  <span className="text-kumo-subtle text-sm">{selectedDomain || "no domain"}</span>
-                )}
+                  <div className="flex flex-row gap-0.5">
+                    <span className="text-kumo-subtle">@</span>
+                    {domains.length > 1 ? (
+                      <div className="flex-1">
+                        <Select
+                          aria-label="Domain"
+                          value={selectedDomain}
+                          onValueChange={(value) => {
+                            if (value) setSelectedDomain(value);
+                          }}
+                        >
+                          {domains.map((d) => (
+                            <Select.Option key={d} value={d}>
+                              {d}
+                            </Select.Option>
+                          ))}
+                        </Select>
+                      </div>
+                    ) : (
+                      <span className="text-kumo-subtle">{selectedDomain || "no domain"}</span>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-            <Input
-              label="Display Name (optional)"
-              placeholder="Info"
-              size="sm"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-            />
-            <div className="flex justify-end gap-2 pt-2">
-              <Dialog.Close
-                render={(props) => (
-                  <Button {...props} variant="secondary" size="sm">
-                    Cancel
-                  </Button>
-                )}
+              <Input
+                label="Display Name (optional)"
+                placeholder="Info"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
               />
-              <Button type="submit" variant="primary" size="sm" loading={isCreating} disabled={!selectedDomain}>
-                Create
-              </Button>
-            </div>
-          </form>
-        </Dialog>
-      </Dialog.Root>
+            </form>
+          </LayerDialog.Body>
+          <LayerDialog.Actions dismissLabel="Cancel">
+            <LayerDialog.Action
+              type="submit"
+              form="create-mailbox-form"
+              loading={isCreating}
+              disabled={!selectedDomain}
+            >
+              Create
+            </LayerDialog.Action>
+          </LayerDialog.Actions>
+        </LayerDialog.Content>
+      </LayerDialog.Root>
 
       {/* Delete Dialog */}
       <Dialog.Root
@@ -281,21 +278,21 @@ export default function HomeRoute() {
           if (!open) setMailboxToDelete(null);
         }}
       >
-        <Dialog size="sm" className="p-6">
+        <Dialog className="p-6">
           <Dialog.Title className="mb-2 text-base font-semibold">Delete Mailbox</Dialog.Title>
-          <Dialog.Description className="text-kumo-subtle mb-5 text-sm">
+          <Dialog.Description className="text-kumo-subtle mb-5 text-base">
             Are you sure you want to delete <strong className="text-kumo-default">{mailboxToDelete?.email}</strong>?
             This action cannot be undone.
           </Dialog.Description>
           <div className="flex justify-end gap-2">
             <Dialog.Close
               render={(props) => (
-                <Button {...props} variant="secondary" size="sm">
+                <Button {...props} variant="secondary">
                   Cancel
                 </Button>
               )}
             />
-            <Button variant="destructive" size="sm" loading={isDeleting} onClick={handleDelete}>
+            <Button variant="destructive" loading={isDeleting} onClick={handleDelete}>
               Delete
             </Button>
           </div>
