@@ -37,7 +37,7 @@ interface UIState {
 export const useUIStore = create<UIState>((set, get) => ({
   selectedEmailId: null,
   isSidebarOpen: false,
-  isAgentPanelOpen: true,
+  isAgentPanelOpen: false,
 
   selectEmail: (id) => set({ selectedEmailId: id }),
 
