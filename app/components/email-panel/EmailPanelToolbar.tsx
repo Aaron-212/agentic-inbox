@@ -77,6 +77,11 @@ export default function EmailPanelToolbar({
         aria-label="Back to list"
         className="shrink-0 md:hidden"
       />
+      <div
+        role="separator"
+        aria-orientation="vertical"
+        className="border-kumo-line mx-0.5 h-5 shrink-0 border-l md:hidden"
+      />
 
       {isDraftFolder ? (
         <>
