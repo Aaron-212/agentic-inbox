@@ -115,7 +115,7 @@ export default function Sidebar() {
         <Button
           shape="square"
           variant="outline"
-          size="md"
+          size="base"
           onClick={() => {
             navigate("/");
             closeSidebar();
@@ -135,7 +135,7 @@ export default function Sidebar() {
         <Button
           variant="primary"
           icon={<PencilSimpleIcon size={16} />}
-          onClick={() => startCompose()}
+          onClick={() => startCompose(mailboxId)}
           className="w-full"
         >
           Compose

@@ -4,9 +4,9 @@
 
 import { Sidebar as KumoSidebar } from "@cloudflare/kumo";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { Outlet, useParams } from "react-router";
+import { Outlet, useParams, useSearchParams } from "react-router";
 import AgentSidebar from "~/components/AgentSidebar";
-import ComposeEmail from "~/components/ComposeEmail";
+import DockedComposer from "~/components/DockedComposer";
 import Header from "~/components/Header";
 import Sidebar from "~/components/Sidebar";
 import { useMailbox } from "~/queries/mailboxes";
@@ -30,30 +30,23 @@ function getServerIsMobileSidebar() {
 
 export default function MailboxRoute() {
   const { mailboxId } = useParams<{ mailboxId: string }>();
+  const [searchParams] = useSearchParams();
+  const requestedEmailId = searchParams.get("email");
   // Prefetch mailbox data for child components
   useMailbox(mailboxId);
   const prevMailboxIdRef = useRef<string | undefined>(undefined);
-  const {
-    isSidebarOpen,
-    openSidebar,
-    closeSidebar,
-    isAgentPanelOpen,
-    setAgentPanelOpen,
-    closePanel,
-    closeComposeModal,
-  } = useUIStore();
+  const { isSidebarOpen, openSidebar, closeSidebar, isAgentPanelOpen, setAgentPanelOpen, selectEmail } = useUIStore();
   const isMobile = useSyncExternalStore(subscribeToMobileSidebar, getIsMobileSidebar, getServerIsMobileSidebar);
   const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
 
   useEffect(() => {
     if (prevMailboxIdRef.current && mailboxId && prevMailboxIdRef.current !== mailboxId) {
-      closePanel();
-      closeComposeModal();
+      selectEmail(requestedEmailId);
       closeSidebar();
     }
 
     prevMailboxIdRef.current = mailboxId;
-  }, [mailboxId, closeComposeModal, closePanel, closeSidebar]);
+  }, [mailboxId, requestedEmailId, selectEmail, closeSidebar]);
 
   return (
     <KumoSidebar.Provider
@@ -71,8 +64,9 @@ export default function MailboxRoute() {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0 bg-kumo-base">
         <Header />
-        <main className="flex-1 overflow-hidden">
+        <main className="@container relative flex-1 min-h-0 overflow-hidden">
           <Outlet />
+          <DockedComposer />
         </main>
       </div>
 
@@ -94,8 +88,6 @@ export default function MailboxRoute() {
           <KumoSidebar.ResizeHandle aria-label="Resize agent sidebar" />
         </KumoSidebar>
       </KumoSidebar.Provider>
-
-      <ComposeEmail />
     </KumoSidebar.Provider>
   );
 }

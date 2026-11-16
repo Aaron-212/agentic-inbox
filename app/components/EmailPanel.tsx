@@ -17,6 +17,7 @@ import {
   useDeleteEmail,
   useEmail,
   useGenerateAIReply,
+  useForwardEmail,
   useMoveEmail,
   useReplyToEmail,
   useSendEmail,
@@ -25,6 +26,7 @@ import {
 } from "~/queries/emails";
 import { useFolders } from "~/queries/folders";
 import { useMailbox } from "~/queries/mailboxes";
+import { useComposeStore } from "~/hooks/useComposeStore";
 import { useUIStore } from "~/hooks/useUIStore";
 import type { Email, Folder, Mailbox } from "~/types";
 
@@ -60,6 +62,7 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
   const moveEmailMut = useMoveEmail();
   const sendEmailMut = useSendEmail();
   const replyMut = useReplyToEmail();
+  const forwardMut = useForwardEmail();
   const generateAIReply = useGenerateAIReply();
   const { data: folders = [] } = useFolders(mailboxId) as { data?: Folder[] };
   const { data: currentMailbox } = useMailbox(mailboxId) as {
@@ -128,12 +131,28 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
   };
   const handleMove = (folderId: string) => {
     if (mailboxId) {
+      const composer = useComposeStore
+        .getState()
+        .sessions.find((session) => session.mailboxId === mailboxId && session.draftId === email.id);
+      if (composer) {
+        useComposeStore.getState().restore(composer.id);
+        toastManager.add({ title: "Close the composer before moving this draft." });
+        return;
+      }
       moveEmailMut.mutate({ mailboxId, id: email.id, folderId });
       closePanel();
     }
   };
   const handleDelete = () => {
     if (mailboxId) {
+      const composer = useComposeStore
+        .getState()
+        .sessions.find((session) => session.mailboxId === mailboxId && session.draftId === email.id);
+      if (composer) {
+        useComposeStore.getState().restore(composer.id);
+        toastManager.add({ title: "Discard this draft from its open composer." });
+        return;
+      }
       if (!window.confirm("Are you sure you want to delete this email?")) return;
       deleteEmailMut.mutate({ mailboxId, id: email.id });
       closePanel();
@@ -143,19 +162,28 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
   const handleEditDraft = (draftMsg?: Email) => {
     const target = draftMsg || email;
     if (target.in_reply_to) {
-      startCompose({
-        mode: "reply",
+      startCompose(mailboxId, {
+        mode: target.compose_mode || "reply",
         originalEmail: allMessages.find((msg) => msg.id === target.in_reply_to),
         draftEmail: target,
       });
     } else {
-      startCompose({ mode: "new", originalEmail: undefined, draftEmail: target });
+      startCompose(mailboxId, { mode: target.compose_mode || "new", originalEmail: undefined, draftEmail: target });
     }
   };
 
   const handleDeleteDraft = async (draftMsg?: Email) => {
     const target = draftMsg || email;
     if (!mailboxId) return;
+    if (
+      useComposeStore
+        .getState()
+        .sessions.some((session) => session.mailboxId === mailboxId && session.draftId === target.id)
+    ) {
+      handleEditDraft(target);
+      toastManager.add({ title: "Discard this draft from its open composer." });
+      return;
+    }
     if (!window.confirm("Discard this draft?")) return;
     deleteEmailMut.mutate({ mailboxId, id: target.id });
     toastManager.add({ title: "Draft discarded" });
@@ -165,6 +193,15 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
   const handleSendDraft = async (draftMsg?: Email) => {
     let target = draftMsg || email;
     if (!mailboxId || !currentMailbox) return;
+    if (
+      useComposeStore
+        .getState()
+        .sessions.some((session) => session.mailboxId === mailboxId && session.draftId === target.id)
+    ) {
+      handleEditDraft(target);
+      toastManager.add({ title: "Send this draft from its open composer." });
+      return;
+    }
     setIsSending(true);
     try {
       if (!target.recipient || !target.subject) {
@@ -187,7 +224,6 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
         fromName && fromName !== currentMailbox.email
           ? { email: currentMailbox.email, name: fromName }
           : currentMailbox.email;
-      const originalEmail = target.in_reply_to ? allMessages.find((msg) => msg.id === target.in_reply_to) : undefined;
       const emailData = {
         to: toEmailListValue(toRecipients),
         cc: toEmailListValue(splitEmailList(target.cc)),
@@ -197,7 +233,10 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
         html: target.body || "",
         text: target.body ? target.body.replace(/<[^>]*>/g, "").trim() : "",
       };
-      if (originalEmail) await replyMut.mutateAsync({ mailboxId, emailId: originalEmail.id, email: emailData });
+      if (target.in_reply_to && target.compose_mode === "forward")
+        await forwardMut.mutateAsync({ mailboxId, emailId: target.in_reply_to, email: emailData });
+      else if (target.in_reply_to)
+        await replyMut.mutateAsync({ mailboxId, emailId: target.in_reply_to, email: emailData });
       else await sendEmailMut.mutateAsync({ mailboxId, email: emailData });
       await deleteEmailMut.mutateAsync({ mailboxId, id: target.id });
       toastManager.add({ title: "Email sent!" });
@@ -216,8 +255,8 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
     try {
       const draftEmail = await generateAIReply.mutateAsync({ mailboxId, emailId: originalEmail.id });
       const current = useUIStore.getState();
-      if (current.selectedEmailId === emailId && !current.isComposing) {
-        startCompose({ mode: "reply", originalEmail, draftEmail });
+      if (current.selectedEmailId === emailId && !useComposeStore.getState().sessions.length) {
+        startCompose(mailboxId, { mode: "reply", originalEmail, draftEmail });
       } else {
         toastManager.add({ title: "AI reply saved to Drafts" });
       }
@@ -244,14 +283,14 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
         onEditDraft={() => handleEditDraft()}
         onDraftAIReply={handleDraftAIReply}
         isGeneratingAIReply={generateAIReply.isPending}
-        onReply={() => startCompose({ mode: "reply", originalEmail: lastReceivedMessage })}
+        onReply={() => startCompose(mailboxId, { mode: "reply", originalEmail: lastReceivedMessage })}
         onReplyAll={() =>
-          startCompose({
+          startCompose(mailboxId, {
             mode: "reply-all",
             originalEmail: lastReceivedMessage,
           })
         }
-        onForward={() => startCompose({ mode: "forward", originalEmail: email })}
+        onForward={() => startCompose(mailboxId, { mode: "forward", originalEmail: email })}
         onToggleStar={toggleStar}
         onToggleRead={() => {
           if (mailboxId) {

@@ -25,3 +25,9 @@ body {
   margin-top: 0.25em;
   margin-bottom: 0.25em;
 }
+
+.compose-resize-handles {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}

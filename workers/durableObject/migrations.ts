@@ -157,4 +157,8 @@ export const mailboxMigrations: Migration[] = [
             CREATE INDEX IF NOT EXISTS idx_emails_folder_date ON emails(folder_id, date DESC);
         `,
   },
+  {
+    name: "9_add_compose_mode",
+    sql: `ALTER TABLE emails ADD COLUMN compose_mode TEXT;`,
+  },
 ];

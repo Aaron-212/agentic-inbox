@@ -3,167 +3,240 @@
 //     https://opensource.org/licenses/Apache-2.0
 
 import { Banner, Button, Input } from "@cloudflare/kumo";
-import { FloppyDiskIcon, PaperPlaneTiltIcon, XIcon } from "@phosphor-icons/react";
-import { useParams } from "react-router";
+import { ArrowsInSimpleIcon, ArrowsOutSimpleIcon, MinusIcon, PaperPlaneTiltIcon, XIcon } from "@phosphor-icons/react";
+import { type ComponentPropsWithoutRef, useEffect, useId, useRef } from "react";
+import { Resizable } from "re-resizable";
+import { useNavigate } from "react-router";
 import { useComposeForm } from "~/hooks/useComposeForm";
+import { useComposeStore, type ComposeSession } from "~/hooks/useComposeStore";
 import RichTextEditor from "./RichTextEditor";
+import ComposeResizeMenu from "./ComposeResizeMenu";
+import { useComposeResize } from "~/hooks/useComposeResize";
 
-export default function ComposePanel() {
-  const { mailboxId, folder } = useParams<{
-    mailboxId: string;
-    folder: string;
-  }>();
+export default function ComposePanel({ session, hasMinimized }: { session: ComposeSession; hasMinimized: boolean }) {
+  const form = useComposeForm(session);
+  const dialog = useRef<Resizable>(null);
+  const resize = useComposeResize(dialog, hasMinimized, session.expanded);
+  const lastField = useRef<HTMLElement | null>(null);
+  const id = useId();
+  const navigate = useNavigate();
+  const recoveryUnavailable = useComposeStore((state) => state.recoveryUnavailable);
+  const updateSession = useComposeStore((state) => state.updateSession);
 
-  const {
-    to,
-    setTo,
-    cc,
-    setCc,
-    bcc,
-    setBcc,
-    showCcBcc,
-    setShowCcBcc,
-    subject,
-    setSubject,
-    body,
-    setBody,
-    error,
-    isSavingDraft,
-    isSending,
-    formTitle,
-    handleSaveDraft,
-    handleSend,
-    closeCompose,
-    closePanel,
-  } = useComposeForm(mailboxId, folder);
+  const fieldsReady = session.fields !== null;
+
+  useEffect(() => {
+    const element = dialog.current?.resizable;
+    if (!(element instanceof HTMLDialogElement)) return;
+    if (session.minimized) {
+      element.close();
+      return;
+    }
+    // Keep the inbox interactive and the composer inside the mail workspace.
+    if (!element.open) element.show();
+    if (!fieldsReady) return;
+    const frame = requestAnimationFrame(() => {
+      (lastField.current ?? element.querySelector<HTMLInputElement>("input"))?.focus();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [session.minimized, fieldsReady]);
+
+  const minimize = () => updateSession(session.id, { minimized: true });
+  const originalId = session.options.originalEmail?.id || session.options.draftEmail?.in_reply_to;
+  const saveStatus = form.saveFailed
+    ? "Couldn’t save"
+    : form.isSavingDraft
+      ? "Saving…"
+      : session.revision !== session.savedRevision
+        ? "Unsaved changes"
+        : session.hasSavedDraft
+          ? "Saved to Drafts"
+          : "";
+
+  const dialogProps = {
+    "aria-labelledby": `${id}-title`,
+    onFocusCapture: (event) => {
+      if (event.target.matches("input, [contenteditable]")) lastField.current = event.target;
+    },
+    onKeyDown: (event) => {
+      if (event.key === "Escape" && !event.defaultPrevented) {
+        event.preventDefault();
+        minimize();
+      }
+    },
+  } satisfies ComponentPropsWithoutRef<"dialog">;
 
   return (
-    <div className="flex flex-col h-full bg-kumo-base">
-      <div className="flex h-12 items-center justify-between px-4 border-b border-kumo-line shrink-0 md:px-6">
-        <h2 className="text-base font-semibold text-kumo-default">{formTitle}</h2>
-        <div className="flex items-center gap-1">
+    <Resizable
+      as="dialog"
+      ref={dialog}
+      {...dialogProps}
+      {...resize.resizableProps}
+      handleWrapperClass="compose-resize-handles"
+      className={`pointer-events-auto m-0 max-h-none max-w-none border border-kumo-line bg-kumo-base p-0 text-kumo-default shadow-2xl open:flex open:flex-col ${session.expanded ? "" : "@3xl:rounded-t-lg"}`}
+    >
+      <span className="sr-only" role="status">
+        {resize.announcement}
+      </span>
+      <div className="flex h-12 shrink-0 items-center justify-between gap-2 border-b border-kumo-line px-4">
+        <h2 id={`${id}-title`} className="min-w-0 truncate text-sm font-semibold">
+          {form.subject || form.formTitle}
+        </h2>
+        <div className="flex shrink-0 items-center gap-1">
+          {!session.expanded && <ComposeResizeMenu resize={resize} />}
           <Button
+            type="button"
+            variant="ghost"
+            shape="square"
+            size="sm"
+            icon={<MinusIcon size={18} />}
+            onClick={minimize}
+            aria-label="Minimize composer"
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            shape="square"
+            size="sm"
+            icon={session.expanded ? <ArrowsInSimpleIcon size={18} /> : <ArrowsOutSimpleIcon size={18} />}
+            onClick={() => updateSession(session.id, { expanded: !session.expanded })}
+            aria-label={session.expanded ? "Restore composer size" : "Expand composer"}
+            aria-pressed={session.expanded}
+            className="hidden @3xl:inline-flex"
+          />
+          <Button
+            type="button"
             variant="ghost"
             shape="square"
             size="sm"
             icon={<XIcon size={18} />}
-            onClick={closeCompose}
-            disabled={isSending}
-            aria-label="Close compose"
+            onClick={() => void form.closeCompose()}
+            disabled={form.isSending || form.isSavingDraft}
+            aria-label="Save draft and close"
           />
         </div>
       </div>
-
-      <form onSubmit={(e) => handleSend(e, closePanel)} className="flex flex-col flex-1 min-h-0 overflow-y-auto">
-        <div className="p-4 md:p-6 space-y-4">
-          {error && <Banner variant="error" description={error} />}
-
+      <form onSubmit={form.handleSend} className="flex min-h-0 flex-1 flex-col">
+        <fieldset
+          disabled={form.isSending || !session.fields}
+          className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto border-0 p-4"
+        >
           <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-kumo-subtle w-14 shrink-0">To</label>
-              <div className="flex-1 flex items-center gap-2 min-w-0">
+            {form.error && <Banner variant="error" description={form.error} />}
+            {recoveryUnavailable && (
+              <Banner
+                variant="alert"
+                description="Local recovery is unavailable. Keep this tab open until your draft is saved."
+              />
+            )}
+            <div className="flex items-center justify-between gap-2 text-sm">
+              <span className="truncate text-kumo-subtle">From: {form.mailbox?.email || session.mailboxId}</span>
+              {originalId && (
+                <button
+                  type="button"
+                  className="shrink-0 text-kumo-link hover:underline"
+                  onClick={() => {
+                    navigate(`/mailbox/${session.mailboxId}/emails/inbox?email=${encodeURIComponent(originalId)}`);
+                    minimize();
+                  }}
+                >
+                  View original
+                </button>
+              )}
+            </div>
+            <div className="flex items-end gap-2">
+              <div className="min-w-0 flex-1">
                 <Input
+                  id={`${id}-to`}
+                  label="To"
                   type="text"
                   placeholder="recipient@example.com"
                   size="sm"
-                  value={to}
-                  onChange={(e) => setTo(e.target.value)}
+                  value={form.to}
+                  onChange={(event) => form.updateFields({ to: event.target.value })}
                   required
+                  autoFocus
                 />
-                {!showCcBcc && (
-                  <button
-                    type="button"
-                    onClick={() => setShowCcBcc(true)}
-                    className="shrink-0 text-xs text-kumo-link hover:underline font-medium"
-                  >
-                    CC / BCC
-                  </button>
-                )}
               </div>
+              {!form.showCcBcc && (
+                <Button type="button" variant="ghost" size="sm" onClick={() => form.updateFields({ showCcBcc: true })}>
+                  CC / BCC
+                </Button>
+              )}
             </div>
-
-            {showCcBcc && (
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-kumo-subtle w-14 shrink-0">CC</label>
-                <div className="flex-1">
-                  <Input
-                    type="text"
-                    size="sm"
-                    value={cc}
-                    onChange={(e) => setCc(e.target.value)}
-                    placeholder="Separate multiple addresses with commas"
-                  />
-                </div>
-              </div>
-            )}
-
-            {showCcBcc && (
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-kumo-subtle w-14 shrink-0">BCC</label>
-                <div className="flex-1">
-                  <Input
-                    type="text"
-                    size="sm"
-                    value={bcc}
-                    onChange={(e) => setBcc(e.target.value)}
-                    placeholder="Separate multiple addresses with commas"
-                  />
-                </div>
-              </div>
-            )}
-
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-kumo-subtle w-14 shrink-0">Subject</label>
-              <div className="flex-1">
+            {form.showCcBcc && (
+              <>
                 <Input
-                  type="text"
-                  placeholder="Email subject"
+                  id={`${id}-cc`}
+                  label="CC"
                   size="sm"
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  required
+                  value={form.cc}
+                  onChange={(event) => form.updateFields({ cc: event.target.value })}
                 />
-              </div>
-            </div>
+                <Input
+                  id={`${id}-bcc`}
+                  label="BCC"
+                  size="sm"
+                  value={form.bcc}
+                  onChange={(event) => form.updateFields({ bcc: event.target.value })}
+                />
+              </>
+            )}
+            <Input
+              id={`${id}-subject`}
+              label="Subject"
+              size="sm"
+              value={form.subject}
+              onChange={(event) => form.updateFields({ subject: event.target.value })}
+              required
+            />
           </div>
-
-          <div className="border border-kumo-line rounded-md overflow-hidden bg-kumo-base">
-            <RichTextEditor value={body} onChange={setBody} />
+          <div className="mt-4 min-h-64 flex-1">
+            <RichTextEditor
+              value={form.body}
+              onChange={(body) => form.updateFields({ body })}
+              disabled={form.isSending || !session.fields}
+            />
           </div>
-        </div>
-
-        {/* Footer actions */}
-        <div className="mt-auto px-4 py-3 border-t border-kumo-line bg-kumo-fill/30 shrink-0 md:px-6">
-          <div className="flex items-center justify-between">
-            <Button type="button" variant="ghost" size="sm" onClick={closeCompose} disabled={isSending}>
-              Discard
-            </Button>
-            <div className="flex items-center gap-2">
+        </fieldset>
+        <div className="flex shrink-0 items-center justify-between gap-2 border-t border-kumo-line px-4 py-3">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => void form.discard()}
+            disabled={form.isSending || form.isSavingDraft}
+          >
+            Discard
+          </Button>
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="truncate text-xs text-kumo-subtle" role="status">
+              {saveStatus}
+            </span>
+            {form.saveFailed && (
               <Button
                 type="button"
                 variant="secondary"
                 size="sm"
-                loading={isSavingDraft}
-                disabled={isSending}
-                icon={<FloppyDiskIcon size={14} />}
-                onClick={handleSaveDraft}
+                onClick={() => void form.handleSaveDraft()}
+                disabled={form.isSending}
               >
-                {isSavingDraft ? "Saving..." : "Save as Draft"}
+                Retry
               </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                size="sm"
-                loading={isSending}
-                disabled={isSavingDraft || isSending}
-                icon={<PaperPlaneTiltIcon size={14} />}
-              >
-                {isSending ? "Sending..." : "Send"}
-              </Button>
-            </div>
+            )}
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              loading={form.isSending}
+              disabled={form.isSending || !session.fields || !form.mailbox}
+              icon={<PaperPlaneTiltIcon size={14} />}
+            >
+              Send
+            </Button>
           </div>
         </div>
       </form>
-    </div>
+    </Resizable>
   );
 }

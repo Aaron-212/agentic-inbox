@@ -75,6 +75,7 @@ interface EmailData {
   read?: boolean;
   starred?: boolean;
   in_reply_to?: string | null;
+  compose_mode?: string | null;
   email_references?: string | null;
   thread_id?: string | null;
   message_id?: string | null;
@@ -784,6 +785,31 @@ export class MailboxDO extends DurableObject<Env> {
   }
 
   // ── Email creation (Drizzle) ───────────────────────────────────
+
+  async saveDraft(email: EmailData) {
+    return this.ctx.storage.transactionSync(() => {
+      const existing = this.db.select().from(schema.emails).where(eq(schema.emails.id, email.id)).get();
+      if (existing && existing.folder_id !== Folders.DRAFT) return false;
+      const values = {
+        subject: email.subject,
+        sender: email.sender,
+        recipient: email.recipient,
+        cc: email.cc ?? null,
+        bcc: email.bcc ?? null,
+        date: email.date,
+        body: email.body,
+        in_reply_to: email.in_reply_to ?? null,
+        thread_id: email.thread_id ?? email.id,
+        compose_mode: email.compose_mode ?? null,
+      };
+      this.db
+        .insert(schema.emails)
+        .values({ id: email.id, folder_id: Folders.DRAFT, read: 1, ...values })
+        .onConflictDoUpdate({ target: schema.emails.id, set: values })
+        .run();
+      return true;
+    });
+  }
 
   async createEmail(folder: string, email: EmailData, attachments: AttachmentData[]) {
     // Resolve folder name or ID to the actual folder ID.

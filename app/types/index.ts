@@ -37,6 +37,7 @@ export interface Email {
   starred: boolean;
   body?: string | null;
   in_reply_to?: string | null;
+  compose_mode?: "new" | "reply" | "reply-all" | "forward" | null;
   email_references?: string | null;
   message_id?: string | null;
   raw_headers?: string | null;

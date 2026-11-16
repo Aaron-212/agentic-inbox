@@ -5,7 +5,7 @@
 import { Button, Empty, LinkProvider, Loader, Toasty, TooltipProvider } from "@cloudflare/kumo";
 import { WarningIcon } from "@phosphor-icons/react";
 import { MutationCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { forwardRef, useState } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import {
   isRouteErrorResponse,
   Links,
@@ -15,6 +15,7 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
+import { useComposeStore } from "~/hooks/useComposeStore";
 import { ApiError } from "~/services/api";
 import "./index.css";
 
@@ -112,6 +113,16 @@ export default function App() {
   // Use useState to ensure each SSR request gets a fresh client while the
   // browser reuses the same singleton across navigations.
   const [queryClient] = useState(getQueryClient);
+  useEffect(() => {
+    if (!useComposeStore.persist.hasHydrated()) void useComposeStore.persist.rehydrate();
+    const warnBeforeLeaving = (event: BeforeUnloadEvent) => {
+      if (useComposeStore.getState().sessions.some((session) => session.revision !== session.savedRevision)) {
+        event.preventDefault();
+      }
+    };
+    window.addEventListener("beforeunload", warnBeforeLeaving);
+    return () => window.removeEventListener("beforeunload", warnBeforeLeaving);
+  }, []);
   return (
     <QueryClientProvider client={queryClient}>
       <LinkProvider component={KumoLink}>

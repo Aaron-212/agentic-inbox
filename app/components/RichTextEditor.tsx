@@ -31,9 +31,10 @@ import { useCallback, useEffect } from "react";
 interface RichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
+  disabled?: boolean;
 }
 
-export default function RichTextEditor({ value, onChange }: RichTextEditorProps) {
+export default function RichTextEditor({ value, onChange, disabled = false }: RichTextEditorProps) {
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -46,8 +47,13 @@ export default function RichTextEditor({ value, onChange }: RichTextEditorProps)
       Highlight.configure({ multicolor: true }),
     ],
     content: value,
+    immediatelyRender: false,
+    editable: !disabled,
     editorProps: {
       attributes: {
+        role: "textbox",
+        "aria-label": "Message",
+        "aria-multiline": "true",
         class:
           "prose prose-sm max-w-none focus:outline-none min-h-[180px] p-3 text-sm [&_blockquote]:border-l-2 [&_blockquote]:border-kumo-line [&_blockquote]:pl-3 [&_blockquote]:text-kumo-subtle [&_blockquote]:bg-kumo-tint [&_blockquote]:py-1 [&_blockquote]:my-2 [&_blockquote]:text-xs [&_blockquote]:rounded-r-sm",
       },
@@ -59,16 +65,13 @@ export default function RichTextEditor({ value, onChange }: RichTextEditorProps)
 
   useEffect(() => {
     if (editor && !editor.isDestroyed && value !== editor.getHTML()) {
-      editor.commands.setContent(value);
-      // Place cursor at the start of the document (above quoted text)
-      const rafId = requestAnimationFrame(() => {
-        if (!editor.isDestroyed) {
-          editor.commands.focus("start");
-        }
-      });
-      return () => cancelAnimationFrame(rafId);
+      editor.commands.setContent(value, { emitUpdate: false });
     }
   }, [value, editor]);
+
+  useEffect(() => {
+    editor?.setEditable(!disabled, false);
+  }, [editor, disabled]);
 
   const setLink = useCallback(() => {
     if (!editor) return;
@@ -94,6 +97,7 @@ export default function RichTextEditor({ value, onChange }: RichTextEditorProps)
           side="bottom"
           render={
             <Button
+              type="button"
               variant={editor.isActive("bold") ? "secondary" : "ghost"}
               shape="square"
               size="sm"
@@ -108,6 +112,7 @@ export default function RichTextEditor({ value, onChange }: RichTextEditorProps)
           side="bottom"
           render={
             <Button
+              type="button"
               variant={editor.isActive("italic") ? "secondary" : "ghost"}
               shape="square"
               size="sm"
@@ -122,6 +127,7 @@ export default function RichTextEditor({ value, onChange }: RichTextEditorProps)
           side="bottom"
           render={
             <Button
+              type="button"
               variant={editor.isActive("underline") ? "secondary" : "ghost"}
               shape="square"
               size="sm"
@@ -136,6 +142,7 @@ export default function RichTextEditor({ value, onChange }: RichTextEditorProps)
           side="bottom"
           render={
             <Button
+              type="button"
               variant={editor.isActive("strike") ? "secondary" : "ghost"}
               shape="square"
               size="sm"
@@ -154,6 +161,7 @@ export default function RichTextEditor({ value, onChange }: RichTextEditorProps)
           side="bottom"
           render={
             <Button
+              type="button"
               variant={editor.isActive("bulletList") ? "secondary" : "ghost"}
               shape="square"
               size="sm"
@@ -168,6 +176,7 @@ export default function RichTextEditor({ value, onChange }: RichTextEditorProps)
           side="bottom"
           render={
             <Button
+              type="button"
               variant={editor.isActive("orderedList") ? "secondary" : "ghost"}
               shape="square"
               size="sm"
@@ -186,6 +195,7 @@ export default function RichTextEditor({ value, onChange }: RichTextEditorProps)
           side="bottom"
           render={
             <Button
+              type="button"
               variant={editor.isActive("blockquote") ? "secondary" : "ghost"}
               shape="square"
               size="sm"
@@ -200,6 +210,7 @@ export default function RichTextEditor({ value, onChange }: RichTextEditorProps)
           side="bottom"
           render={
             <Button
+              type="button"
               variant={editor.isActive("link") ? "secondary" : "ghost"}
               shape="square"
               size="sm"
@@ -215,6 +226,7 @@ export default function RichTextEditor({ value, onChange }: RichTextEditorProps)
             side="bottom"
             render={
               <Button
+                type="button"
                 variant="ghost"
                 shape="square"
                 size="sm"
@@ -230,6 +242,7 @@ export default function RichTextEditor({ value, onChange }: RichTextEditorProps)
           side="bottom"
           render={
             <Button
+              type="button"
               variant="ghost"
               shape="square"
               size="sm"
@@ -248,6 +261,7 @@ export default function RichTextEditor({ value, onChange }: RichTextEditorProps)
           side="bottom"
           render={
             <Button
+              type="button"
               variant="ghost"
               shape="square"
               size="sm"
@@ -263,6 +277,7 @@ export default function RichTextEditor({ value, onChange }: RichTextEditorProps)
           side="bottom"
           render={
             <Button
+              type="button"
               variant="ghost"
               shape="square"
               size="sm"

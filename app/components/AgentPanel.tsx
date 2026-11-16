@@ -343,7 +343,7 @@ function AgentChatConnected({
                         starred: false,
                         body: draftData.body || "",
                       };
-                      startCompose({
+                      startCompose(mailboxId, {
                         mode: "reply",
                         originalEmail: null,
                         draftEmail,

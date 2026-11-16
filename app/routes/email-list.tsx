@@ -2,7 +2,7 @@
 // Licensed under the Apache 2.0 license found in the LICENSE file or at:
 //     https://opensource.org/licenses/Apache-2.0
 
-import { Button, Pagination, Tooltip } from "@cloudflare/kumo";
+import { Button, Pagination, Tooltip, useKumoToastManager } from "@cloudflare/kumo";
 import {
   ArchiveIcon,
   ArrowBendUpLeftIcon,
@@ -18,7 +18,7 @@ import {
 } from "@phosphor-icons/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useParams } from "react-router";
+import { useLocation, useParams, useSearchParams } from "react-router";
 import { Folders } from "shared/folders";
 import { formatListDate } from "shared/dates";
 import MailboxSplitView from "~/components/MailboxSplitView";
@@ -26,6 +26,7 @@ import { getSnippetText } from "~/lib/utils";
 import { useDeleteEmail, useEmails, useMarkThreadRead, useUpdateEmail } from "~/queries/emails";
 import { useFolders } from "~/queries/folders";
 import { queryKeys } from "~/queries/keys";
+import { useComposeStore } from "~/hooks/useComposeStore";
 import { useUIStore } from "~/hooks/useUIStore";
 import type { Email } from "~/types";
 
@@ -118,8 +119,12 @@ export default function EmailListRoute() {
     mailboxId: string;
     folder: string;
   }>();
-  const { selectedEmailId, isComposing, selectEmail, closePanel, startCompose } = useUIStore();
+  const { selectedEmailId, selectEmail, closePanel, startCompose } = useUIStore();
   const [page, setPage] = useState(1);
+  const toastManager = useKumoToastManager();
+  const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const requestedEmailId = searchParams.get("email");
 
   const queryClient = useQueryClient();
   const updateEmail = useUpdateEmail();
@@ -148,7 +153,7 @@ export default function EmailListRoute() {
     return folder ? folder.charAt(0).toUpperCase() + folder.slice(1) : "Inbox";
   }, [folders, folder]);
 
-  const isPanelOpen = selectedEmailId !== null || isComposing;
+  const isPanelOpen = selectedEmailId !== null;
 
   // Track folder identity to detect folder changes vs page changes
   const prevFolderRef = useRef<string | undefined>(undefined);
@@ -162,6 +167,10 @@ export default function EmailListRoute() {
       setPage(1);
     }
   }, [mailboxId, folder, closePanel]);
+
+  useEffect(() => {
+    if (requestedEmailId) selectEmail(requestedEmailId);
+  }, [requestedEmailId, location.key, mailboxId, folder, selectEmail]);
 
   const toggleStar = (e: React.MouseEvent, email: Email) => {
     e.preventDefault();
@@ -178,6 +187,14 @@ export default function EmailListRoute() {
     e.preventDefault();
     e.stopPropagation();
     if (mailboxId) {
+      const composer = useComposeStore
+        .getState()
+        .sessions.find((session) => session.mailboxId === mailboxId && session.draftId === emailId);
+      if (composer) {
+        useComposeStore.getState().restore(composer.id);
+        toastManager.add({ title: "Discard this draft from its open composer." });
+        return;
+      }
       const confirmed = window.confirm("Are you sure you want to delete this email?");
       if (!confirmed) return;
       deleteEmail.mutate({ mailboxId, id: emailId });
@@ -233,7 +250,7 @@ export default function EmailListRoute() {
   };
 
   return (
-    <MailboxSplitView selectedEmailId={selectedEmailId} isComposing={isComposing}>
+    <MailboxSplitView selectedEmailId={selectedEmailId}>
       {/* Folder header */}
       <div className="flex h-12 items-center justify-between px-4 border-b border-kumo-line shrink-0 md:px-5">
         <h1 className="text-lg font-semibold text-kumo-default">{folderName}</h1>
@@ -383,7 +400,7 @@ export default function EmailListRoute() {
             })}
           </div>
         ) : (
-          <FolderEmptyState folder={folder} onCompose={() => startCompose()} />
+          <FolderEmptyState folder={folder} onCompose={() => startCompose(mailboxId)} />
         )}
       </div>
 

@@ -1,0 +1,41 @@
+// Copyright (c) 2026 Cloudflare, Inc.
+// Licensed under the Apache 2.0 license found in the LICENSE file or at:
+//     https://opensource.org/licenses/Apache-2.0
+
+import { useComposeStore } from "~/hooks/useComposeStore";
+import ComposePanel from "./ComposePanel";
+
+export default function DockedComposer() {
+  const sessions = useComposeStore((state) => state.sessions);
+  const restore = useComposeStore((state) => state.restore);
+
+  const hasMinimized = sessions.some((session) => session.minimized);
+  const hasOpenComposer = sessions.some((session) => !session.minimized);
+  const hasExpandedComposer = sessions.some((session) => !session.minimized && session.expanded);
+
+  return (
+    <div className="pointer-events-none absolute inset-0 z-20">
+      {sessions.map((session) => (
+        <ComposePanel key={session.id} session={session} hasMinimized={hasMinimized} />
+      ))}
+      <div
+        className={`pointer-events-auto absolute bottom-0 inset-x-0 gap-2 overflow-x-auto px-2 ${hasExpandedComposer ? "hidden" : hasOpenComposer ? "hidden @3xl:flex" : "flex"}`}
+      >
+        {sessions
+          .filter((session) => session.minimized)
+          .map((session) => (
+            <button
+              key={session.id}
+              type="button"
+              onClick={() => restore(session.id)}
+              className="max-w-64 shrink-0 first:ml-auto rounded-t-lg border border-kumo-line bg-kumo-base px-4 py-3 text-left shadow-lg hover:bg-kumo-tint"
+              aria-label={`Resume ${session.fields?.subject || "new message"} from ${session.mailboxId}`}
+            >
+              <span className="block truncate text-sm font-medium">{session.fields?.subject || "New message"}</span>
+              <span className="block truncate text-xs text-kumo-subtle">{session.mailboxId}</span>
+            </button>
+          ))}
+      </div>
+    </div>
+  );
+}
