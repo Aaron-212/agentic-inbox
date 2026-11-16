@@ -21,6 +21,9 @@ import { handleReplyEmail, handleForwardEmail } from "./routes/reply-forward";
 import { Folders } from "../shared/folders";
 import type { Env } from "./types";
 import { requireMailbox, type MailboxContext } from "./lib/mailbox";
+import { isMailboxAIFeatureEnabled } from "./lib/ai-settings";
+import { isSpamEmail } from "./lib/spam";
+import { getAIFeatures } from "shared/ai-features";
 
 type AppContext = Context<MailboxContext>;
 
@@ -33,7 +36,27 @@ const ForwardingSettingsSchema = z.discriminatedUnion("enabled", [
 
 function mailboxSettingsSchema(mailboxId: string) {
   return z
-    .object({ forwarding: ForwardingSettingsSchema.optional() })
+    .object({
+      forwarding: ForwardingSettingsSchema.optional(),
+      aiEnabled: z.boolean().optional(),
+      aiModel: z
+        .string()
+        .trim()
+        .max(200)
+        .regex(
+          /^@(cf|hf)\/[a-zA-Z0-9_-]+\/[a-zA-Z0-9][a-zA-Z0-9._:-]*$/,
+          "Enter a Workers AI model ID, such as @cf/meta/llama-3.3-70b-instruct-fp8-fast",
+        )
+        .optional(),
+      aiFeatures: z
+        .object({
+          assistant: z.boolean().optional(),
+          replies: z.boolean().optional(),
+          spam: z.boolean().optional(),
+          mcp: z.boolean().optional(),
+        })
+        .optional(),
+    })
     .passthrough()
     .refine((settings) => !settings.forwarding?.enabled || settings.forwarding.email !== mailboxId.toLowerCase(), {
       message: "Forwarding address must be different from this mailbox",
@@ -407,6 +430,9 @@ app.get("/api/v1/mailboxes/:mailboxId/emails/:emailId/attachments/:attachmentId"
 });
 
 app.post("/api/v1/mailboxes/:mailboxId/emails/:emailId/ai-reply", async (c: AppContext) => {
+  if (!(await isMailboxAIFeatureEnabled(c.env, c.req.param("mailboxId")!, "replies"))) {
+    return c.json({ error: "AI reply drafting is disabled for this mailbox" }, 403);
+  }
   const email = (await c.var.mailboxStub.getEmail(c.req.param("emailId")!)) as EmailFull | null;
   if (!email) return c.json({ error: "Email not found" }, 404);
   if (email.folder_id === Folders.DRAFT) return c.json({ error: "Cannot reply to a draft" }, 400);
@@ -528,16 +554,33 @@ async function receiveEmail(event: ForwardableEmailMessage, env: Env) {
     attachmentData,
   );
 
-  // Forward only after persisting the message and attachments. Delivery failures must not
-  // bounce an already saved message.
+  // Persist first so classification and forwarding failures cannot lose incoming mail.
   try {
     const settings = mailboxSettingsSchema(mailboxId).safeParse(await mailbox.json());
+    if (settings.success && getAIFeatures(settings.data).spam) {
+      try {
+        const spam = await isSpamEmail(env.AI, {
+          sender: parsedEmail.from?.address || "",
+          subject: parsedEmail.subject || "",
+          text: parsedEmail.text,
+          html: parsedEmail.html,
+        });
+        if (spam && (await isMailboxAIFeatureEnabled(env, mailboxId, "spam"))) {
+          if (!(await stub.moveEmail(messageId, Folders.SPAM))) {
+            console.error(`Spam folder missing for ${mailboxId}; message retained in Inbox`);
+          }
+        }
+      } catch (error) {
+        console.error(`Spam classification failed for ${mailboxId}; message retained in Inbox:`, error);
+      }
+    }
+
     const forwarding = settings.success ? settings.data.forwarding : undefined;
     if (forwarding?.enabled && !event.headers.has("X-Agentic-Inbox-Forwarded")) {
       await event.forward(forwarding.email, new Headers({ "X-Agentic-Inbox-Forwarded": mailboxId }));
     }
   } catch (error) {
-    console.error(`Forwarding failed for ${mailboxId}; local copy retained:`, error);
+    console.error(`Post-delivery processing failed for ${mailboxId}; local copy retained:`, error);
   }
 }
 

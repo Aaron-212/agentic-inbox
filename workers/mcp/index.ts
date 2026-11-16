@@ -22,6 +22,7 @@ import {
 } from "../lib/tools";
 import { Folders, FOLDER_TOOL_DESCRIPTION, MOVE_FOLDER_TOOL_DESCRIPTION } from "../../shared/folders";
 import type { Env } from "../types";
+import { isMailboxAIFeatureEnabled } from "../lib/ai-settings";
 
 /** Wrap a plain result object into MCP content format. */
 function mcpText(result: unknown) {
@@ -77,13 +78,17 @@ export class EmailMCP extends McpAgent<Env> {
       if (!obj) {
         return mcpError(`Mailbox "${mailboxId}" not found. Use list_mailboxes to see available mailboxes.`);
       }
+      if (!(await isMailboxAIFeatureEnabled(env, mailboxId, "mcp"))) {
+        return mcpError("MCP access is disabled for this mailbox");
+      }
       return null;
     };
 
     // ── list_mailboxes ─────────────────────────────────────────
     this.server.tool("list_mailboxes", "List all available mailboxes", {}, async () => {
       const result = await toolListMailboxes(env);
-      return mcpText(result);
+      const enabled = await Promise.all(result.map((mailbox) => isMailboxAIFeatureEnabled(env, mailbox.id, "mcp")));
+      return mcpText(result.filter((_mailbox, index) => enabled[index]));
     });
 
     // ── list_emails ────────────────────────────────────────────
@@ -362,7 +367,7 @@ export class EmailMCP extends McpAgent<Env> {
     // ── move_email ─────────────────────────────────────────────
     this.server.tool(
       "move_email",
-      "Move an email to a different folder (inbox, sent, draft, archive, trash).",
+      "Move an email to a different folder (inbox, sent, draft, archive, spam, trash).",
       {
         mailboxId: z.string().describe("The mailbox email address"),
         emailId: z.string().describe("The email ID"),

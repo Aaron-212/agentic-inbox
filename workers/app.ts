@@ -9,6 +9,7 @@ import { createRequestHandler } from "react-router";
 import { app as apiApp, receiveEmail } from "./index";
 import { EmailMCP } from "./mcp";
 import type { Env } from "./types";
+import { isMailboxAIFeatureEnabled } from "./lib/ai-settings";
 
 export { MailboxDO } from "./durableObject";
 export { EmailAgent } from "./agent";
@@ -87,7 +88,15 @@ app.route("/", apiApp);
 
 // Agent WebSocket routing - must be before React Router catch-all
 app.all("/agents/*", async (c) => {
-  const response = await routeAgentRequest(c.req.raw, c.env);
+  const checkAIEnabled = async (_request: Request, { name }: { name: string }) => {
+    if (!(await isMailboxAIFeatureEnabled(c.env, name, "assistant"))) {
+      return c.json({ error: "AI assistant is disabled for this mailbox" }, 403);
+    }
+  };
+  const response = await routeAgentRequest(c.req.raw, c.env, {
+    onBeforeConnect: checkAIEnabled,
+    onBeforeRequest: checkAIEnabled,
+  });
   if (response) return response;
   return c.text("Agent not found", 404);
 });

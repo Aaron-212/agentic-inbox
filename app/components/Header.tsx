@@ -3,15 +3,21 @@
 //     https://opensource.org/licenses/Apache-2.0
 
 import { Button, Input, Sidebar as KumoSidebar, Tooltip, useSidebar } from "@cloudflare/kumo";
-import { GearSixIcon, ListIcon, MagnifyingGlassIcon, RobotIcon, XIcon } from "@phosphor-icons/react";
+import { GearSixIcon, ListIcon, MagnifyingGlassIcon, PlugsIcon, RobotIcon, XIcon } from "@phosphor-icons/react";
 import { type KeyboardEvent, useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router";
+import { getAIFeatures } from "shared/ai-features";
+import { useMailbox } from "~/queries/mailboxes";
 import { useUIStore } from "~/hooks/useUIStore";
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const { mailboxId } = useParams<{ mailboxId: string }>();
+  const { data: mailbox } = useMailbox(mailboxId);
+  const aiFeatures = getAIFeatures(mailbox?.settings);
+  const showAgentSidebar = !!mailbox && (aiFeatures.assistant || aiFeatures.mcp);
+  const panelName = aiFeatures.assistant ? "agent panel" : "MCP panel";
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -138,22 +144,24 @@ export default function Header() {
       )}
 
       <div className="ml-auto flex shrink-0 items-center gap-1">
-        <Tooltip
-          content={isAgentPanelOpen ? "Hide agent panel" : "Show agent panel"}
-          side="bottom"
-          render={
-            <Button
-              variant={isAgentPanelOpen ? "secondary" : "ghost"}
-              shape="square"
-              icon={<RobotIcon size={20} />}
-              onClick={toggleAgentPanel}
-              aria-label="Toggle agent panel"
-              aria-expanded={isAgentPanelOpen}
-              aria-controls="agent-sidebar"
-              className="hidden lg:inline-flex"
-            />
-          }
-        />
+        {showAgentSidebar && (
+          <Tooltip
+            content={`${isAgentPanelOpen ? "Hide" : "Show"} ${panelName}`}
+            side="bottom"
+            render={
+              <Button
+                variant={isAgentPanelOpen ? "secondary" : "ghost"}
+                shape="square"
+                icon={aiFeatures.assistant ? <RobotIcon size={20} /> : <PlugsIcon size={20} />}
+                onClick={toggleAgentPanel}
+                aria-label={`Toggle ${panelName}`}
+                aria-expanded={isAgentPanelOpen}
+                aria-controls="agent-sidebar"
+                className="hidden lg:inline-flex"
+              />
+            }
+          />
+        )}
         <Tooltip
           content="Settings"
           side="bottom"

@@ -13,6 +13,7 @@ import {
   PaperPlaneTiltIcon,
   PencilSimpleIcon,
   StarIcon,
+  ShieldWarningIcon,
   TrashIcon,
   TrayIcon,
 } from "@phosphor-icons/react";
@@ -63,6 +64,11 @@ const FOLDER_EMPTY_STATES: Record<
     icon: <ArchiveIcon size={48} weight="thin" className="text-kumo-subtle" />,
     title: "Archive is empty",
     description: "Move emails here to keep your inbox clean without deleting them.",
+  },
+  [Folders.SPAM]: {
+    icon: <ShieldWarningIcon size={48} weight="thin" className="text-kumo-subtle" />,
+    title: "No spam",
+    description: "Emails identified as spam appear here. You can move legitimate messages back to Inbox.",
   },
   [Folders.TRASH]: {
     icon: <TrashIcon size={48} weight="thin" className="text-kumo-subtle" />,

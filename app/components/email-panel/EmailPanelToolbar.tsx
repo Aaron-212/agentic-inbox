@@ -33,6 +33,7 @@ interface EmailPanelToolbarProps {
   onSendDraft: () => void;
   onEditDraft: () => void;
   onReply: () => void;
+  aiRepliesEnabled: boolean;
   onDraftAIReply: () => void;
   isGeneratingAIReply: boolean;
   onReplyAll: () => void;
@@ -54,6 +55,7 @@ export default function EmailPanelToolbar({
   onSendDraft,
   onEditDraft,
   onReply,
+  aiRepliesEnabled,
   onDraftAIReply,
   isGeneratingAIReply,
   onReplyAll,
@@ -107,26 +109,28 @@ export default function EmailPanelToolbar({
               />
             }
           />
-          <Tooltip
-            content="Draft reply with AI"
-            side="bottom"
-            render={
-              <Button
-                type="button"
-                variant="ghost"
-                shape="square"
-                size="sm"
-                icon={<SparkleIcon size={18} aria-hidden="true" />}
-                onClick={() => {
-                  if (!isGeneratingAIReply) onDraftAIReply();
-                }}
-                loading={isGeneratingAIReply}
-                aria-label="Draft reply with AI"
-                aria-disabled={isGeneratingAIReply}
-                aria-busy={isGeneratingAIReply}
-              />
-            }
-          />
+          {aiRepliesEnabled && (
+            <Tooltip
+              content="Draft reply with AI"
+              side="bottom"
+              render={
+                <Button
+                  type="button"
+                  variant="ghost"
+                  shape="square"
+                  size="sm"
+                  icon={<SparkleIcon size={18} aria-hidden="true" />}
+                  onClick={() => {
+                    if (!isGeneratingAIReply) onDraftAIReply();
+                  }}
+                  loading={isGeneratingAIReply}
+                  aria-label="Draft reply with AI"
+                  aria-disabled={isGeneratingAIReply}
+                  aria-busy={isGeneratingAIReply}
+                />
+              }
+            />
+          )}
           <Tooltip
             content="Reply All"
             side="bottom"

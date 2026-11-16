@@ -40,45 +40,58 @@ function LazyAgentPanel() {
   return <AgentChat />;
 }
 
-export default function AgentSidebar() {
-  const [activeTab, setActiveTab] = useState<"agent" | "mcp">("agent");
+export default function AgentSidebar({
+  assistantEnabled,
+  mcpEnabled,
+}: {
+  assistantEnabled: boolean;
+  mcpEnabled: boolean;
+}) {
+  const [selectedTab, setActiveTab] = useState<"agent" | "mcp">("agent");
+  const activeTab = selectedTab === "agent" ? (assistantEnabled ? "agent" : "mcp") : mcpEnabled ? "mcp" : "agent";
 
   return (
     <div className="flex h-full flex-col">
       {/* Tab bar */}
       <div className="border-kumo-line flex h-16 shrink-0 items-center border-b">
-        <button
-          type="button"
-          onClick={() => setActiveTab("agent")}
-          className={`flex h-full cursor-pointer items-center gap-1.5 border-b-2 bg-transparent px-8 text-base font-medium transition-colors ${
-            activeTab === "agent"
-              ? "border-kumo-brand text-kumo-default"
-              : "text-kumo-subtle hover:text-kumo-default border-transparent"
-          }`}
-        >
-          <RobotIcon size={16} weight={activeTab === "agent" ? "fill" : "regular"} />
-          Agent
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("mcp")}
-          className={`flex h-full cursor-pointer items-center gap-1.5 border-b-2 bg-transparent px-8 text-base font-medium transition-colors ${
-            activeTab === "mcp"
-              ? "border-kumo-brand text-kumo-default"
-              : "text-kumo-subtle hover:text-kumo-default border-transparent"
-          }`}
-        >
-          <PlugsIcon size={16} weight={activeTab === "mcp" ? "fill" : "regular"} />
-          MCP
-        </button>
+        {assistantEnabled && (
+          <button
+            type="button"
+            onClick={() => setActiveTab("agent")}
+            className={`flex h-full cursor-pointer items-center gap-1.5 border-b-2 bg-transparent px-8 text-base font-medium transition-colors ${
+              activeTab === "agent"
+                ? "border-kumo-brand text-kumo-default"
+                : "text-kumo-subtle hover:text-kumo-default border-transparent"
+            }`}
+          >
+            <RobotIcon size={16} weight={activeTab === "agent" ? "fill" : "regular"} />
+            Agent
+          </button>
+        )}
+        {mcpEnabled && (
+          <button
+            type="button"
+            onClick={() => setActiveTab("mcp")}
+            className={`flex h-full cursor-pointer items-center gap-1.5 border-b-2 bg-transparent px-8 text-base font-medium transition-colors ${
+              activeTab === "mcp"
+                ? "border-kumo-brand text-kumo-default"
+                : "text-kumo-subtle hover:text-kumo-default border-transparent"
+            }`}
+          >
+            <PlugsIcon size={16} weight={activeTab === "mcp" ? "fill" : "regular"} />
+            MCP
+          </button>
+        )}
       </div>
 
       {/* Tab content — keep agent mounted so chat isn't lost */}
       <div className="min-h-0 flex-1 overflow-hidden">
-        <div className={activeTab === "agent" ? "h-full" : "hidden"}>
-          <LazyAgentPanel />
-        </div>
-        {activeTab === "mcp" && <MCPPanel />}
+        {assistantEnabled && (
+          <div className={activeTab === "agent" ? "h-full" : "hidden"}>
+            <LazyAgentPanel />
+          </div>
+        )}
+        {mcpEnabled && activeTab === "mcp" && <MCPPanel />}
       </div>
     </div>
   );

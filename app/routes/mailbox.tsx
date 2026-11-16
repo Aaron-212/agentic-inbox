@@ -9,6 +9,7 @@ import AgentSidebar from "~/components/AgentSidebar";
 import FloatingComposer from "~/components/FloatingComposer";
 import Header from "~/components/Header";
 import Sidebar from "~/components/Sidebar";
+import { getAIFeatures } from "shared/ai-features";
 import { useMailbox } from "~/queries/mailboxes";
 import { useUIStore } from "~/hooks/useUIStore";
 
@@ -33,7 +34,9 @@ export default function MailboxRoute() {
   const [searchParams] = useSearchParams();
   const requestedEmailId = searchParams.get("email");
   // Prefetch mailbox data for child components
-  useMailbox(mailboxId);
+  const { data: mailbox } = useMailbox(mailboxId);
+  const aiFeatures = getAIFeatures(mailbox?.settings);
+  const showAgentSidebar = !!mailbox && (aiFeatures.assistant || aiFeatures.mcp);
   const prevMailboxIdRef = useRef<string | undefined>(undefined);
   const { isSidebarOpen, openSidebar, closeSidebar, isAgentPanelOpen, setAgentPanelOpen, selectEmail } = useUIStore();
   const isMobile = useSyncExternalStore(subscribeToMobileSidebar, getIsMobileSidebar, getServerIsMobileSidebar);
@@ -70,24 +73,26 @@ export default function MailboxRoute() {
         </main>
       </div>
 
-      {/* Keep the right sidebar mounted when collapsed so chat and tab state survive. */}
-      <KumoSidebar.Provider
-        side="right"
-        open={isAgentPanelOpen}
-        onOpenChange={setAgentPanelOpen}
-        collapsible="offcanvas"
-        contained
-        resizable
-        defaultWidth={380}
-        minWidth={320}
-        maxWidth={560}
-        className="hidden h-full w-auto shrink-0 lg:flex"
-      >
-        <KumoSidebar id="agent-sidebar" aria-label="Agent and MCP">
-          <AgentSidebar />
-          <KumoSidebar.ResizeHandle aria-label="Resize agent sidebar" />
-        </KumoSidebar>
-      </KumoSidebar.Provider>
+      {/* Keep chat mounted when collapsed, but disconnect it when AI is disabled. */}
+      {showAgentSidebar && (
+        <KumoSidebar.Provider
+          side="right"
+          open={isAgentPanelOpen}
+          onOpenChange={setAgentPanelOpen}
+          collapsible="offcanvas"
+          contained
+          resizable
+          defaultWidth={380}
+          minWidth={320}
+          maxWidth={560}
+          className="hidden h-full w-auto shrink-0 lg:flex"
+        >
+          <KumoSidebar id="agent-sidebar" aria-label={aiFeatures.assistant ? "Agent" : "MCP"}>
+            <AgentSidebar assistantEnabled={aiFeatures.assistant} mcpEnabled={aiFeatures.mcp} />
+            <KumoSidebar.ResizeHandle aria-label="Resize agent sidebar" />
+          </KumoSidebar>
+        </KumoSidebar.Provider>
+      )}
     </KumoSidebar.Provider>
   );
 }

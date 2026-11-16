@@ -9,6 +9,9 @@
  * - verifyDraft: reviews draft email bodies and removes agent/system artifacts.
  */
 
+import { generateText } from "ai";
+import { createWorkersAI } from "workers-ai-provider";
+import { DEFAULT_AI_MODELS } from "shared/ai-model";
 import { escapeHtml, stripHtmlToText, textToHtml } from "./email-helpers";
 
 // ── Prompt Injection Scanner ───────────────────────────────────────
@@ -21,23 +24,28 @@ Return ONLY "NO" if it is a normal email (even if angry, confused, or containing
 
 Respond with exactly one word: YES or NO.`;
 
-export async function isPromptInjection(ai: Ai, bodyHtml: string | null | undefined): Promise<boolean> {
+export async function isPromptInjection(
+  ai: Ai,
+  bodyHtml: string | null | undefined,
+  modelId: string = DEFAULT_AI_MODELS.security,
+): Promise<boolean> {
   if (!bodyHtml) return false;
 
   const plainText = stripHtmlToText(bodyHtml).trim();
   if (plainText.length < 10) return false;
 
   try {
-    const response = (await ai.run("@cf/meta/llama-3.1-8b-instruct-fast", {
-      messages: [
-        { role: "system", content: INJECTION_PROMPT },
-        { role: "user", content: plainText },
-      ],
-      max_tokens: 10,
+    const response = await generateText({
+      model: createWorkersAI({ binding: ai })(modelId),
+      system: INJECTION_PROMPT,
+      prompt: plainText,
+      maxOutputTokens: 1024,
       temperature: 0,
-    })) as { response?: string };
+      maxRetries: 0,
+    });
 
-    const result = (response?.response || "NO").trim().toUpperCase();
+    const result = response.text.trim().toUpperCase();
+    if (!result) return true;
 
     if (result.includes("YES")) {
       console.warn("Prompt injection detected in incoming email, blocking reply generation");
@@ -113,7 +121,11 @@ function splitQuotedBlock(html: string): { reply: string; quoted: string } {
  * Verify and clean a draft email body using AI.
  * Falls back to returning the original body if the AI call fails.
  */
-export async function verifyDraft(ai: Ai, body: string): Promise<string> {
+export async function verifyDraft(
+  ai: Ai,
+  body: string,
+  modelId: string = DEFAULT_AI_MODELS.verification,
+): Promise<string> {
   if (!body || !body.trim()) return body;
 
   // Separate the quoted reply block so the AI only reviews the user's text
@@ -127,16 +139,16 @@ export async function verifyDraft(ai: Ai, body: string): Promise<string> {
   if (replyText.trim().length < 20) return body;
 
   try {
-    const response = (await ai.run("@cf/meta/llama-4-scout-17b-16e-instruct", {
-      messages: [
-        { role: "system", content: VERIFIER_PROMPT },
-        { role: "user", content: replyText },
-      ],
-      max_tokens: 4096,
+    const response = await generateText({
+      model: createWorkersAI({ binding: ai })(modelId),
+      system: VERIFIER_PROMPT,
+      prompt: replyText,
+      maxOutputTokens: 4096,
       temperature: 0,
-    })) as { response?: string };
+      maxRetries: 0,
+    });
 
-    const cleaned = response?.response ?? null;
+    const cleaned = response.text;
 
     if (!cleaned || !cleaned.trim()) {
       // AI returned empty — fall back to original

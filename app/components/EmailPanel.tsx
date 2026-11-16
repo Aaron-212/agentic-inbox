@@ -2,6 +2,7 @@
 // Licensed under the Apache 2.0 license found in the LICENSE file or at:
 //     https://opensource.org/licenses/Apache-2.0
 
+import { getAIFeatures } from "shared/ai-features";
 import { useKumoToastManager } from "@cloudflare/kumo";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router";
@@ -74,6 +75,7 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
   const [sourceViewEmail, setSourceViewEmail] = useState<Email | null>(null);
   const [expandedMessages, setExpandedMessages] = useState<Set<string>>(new Set());
   const [previewImage, setPreviewImage] = useState<{ url: string; filename: string } | null>(null);
+  const aiRepliesEnabled = !!currentMailbox && getAIFeatures(currentMailbox.settings).replies;
   const isDraftFolder = folder === Folders.DRAFT;
 
   const threadReplies = useMemo(() => {
@@ -250,7 +252,7 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
   };
 
   const handleDraftAIReply = async () => {
-    if (!mailboxId || !lastReceivedMessage || generateAIReply.isPending) return;
+    if (!aiRepliesEnabled || !mailboxId || !lastReceivedMessage || generateAIReply.isPending) return;
     const originalEmail = lastReceivedMessage;
     try {
       const draftEmail = await generateAIReply.mutateAsync({ mailboxId, emailId: originalEmail.id });
@@ -281,6 +283,7 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
         onBack={closePanel}
         onSendDraft={() => handleSendDraft()}
         onEditDraft={() => handleEditDraft()}
+        aiRepliesEnabled={aiRepliesEnabled}
         onDraftAIReply={handleDraftAIReply}
         isGeneratingAIReply={generateAIReply.isPending}
         onReply={() => startCompose(mailboxId, { mode: "reply", originalEmail: lastReceivedMessage })}

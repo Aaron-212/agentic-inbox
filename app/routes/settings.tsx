@@ -6,6 +6,7 @@ import { Badge, Button, Input, Loader, useKumoToastManager } from "@cloudflare/k
 import { RobotIcon, ArrowCounterClockwiseIcon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
+import { getAIFeatures, type AIFeatures } from "shared/ai-features";
 import { useMailbox, useUpdateMailbox } from "~/queries/mailboxes";
 
 // Placeholder shown in the textarea when no custom prompt is set.
@@ -21,6 +22,8 @@ export default function SettingsRoute() {
   const [displayName, setDisplayName] = useState("");
   const [forwardingEnabled, setForwardingEnabled] = useState(false);
   const [forwardingEmail, setForwardingEmail] = useState("");
+  const [aiFeatures, setAIFeatures] = useState(getAIFeatures);
+  const [aiModel, setAIModel] = useState("");
   const [agentPrompt, setAgentPrompt] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
@@ -28,6 +31,8 @@ export default function SettingsRoute() {
     if (mailbox) {
       setDisplayName(mailbox.settings?.fromName || mailbox.name || "");
       setAgentPrompt(mailbox.settings?.agentSystemPrompt || "");
+      setAIFeatures(getAIFeatures(mailbox.settings));
+      setAIModel(mailbox.settings?.aiModel || "");
       setForwardingEnabled(mailbox.settings?.forwarding?.enabled ?? false);
       setForwardingEmail(mailbox.settings?.forwarding?.email || "");
     }
@@ -39,6 +44,9 @@ export default function SettingsRoute() {
     const settings = {
       ...mailbox.settings,
       fromName: displayName,
+      aiEnabled: undefined,
+      aiFeatures,
+      aiModel: aiModel.trim() || undefined,
       forwarding: { enabled: forwardingEnabled, email: forwardingEmail.trim() },
       agentSystemPrompt: agentPrompt.trim() || undefined,
     };
@@ -123,41 +131,87 @@ export default function SettingsRoute() {
           />
         </div>
 
-        {/* Agent System Prompt */}
-        <div className="border-kumo-line bg-kumo-base rounded-lg border p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <RobotIcon size={16} weight="duotone" className="text-kumo-subtle" />
-              <span className="text-kumo-default text-sm font-medium">AI Agent Prompt</span>
-              {isCustomPrompt ? <Badge variant="primary">Custom</Badge> : <Badge variant="secondary">Default</Badge>}
-            </div>
-            {isCustomPrompt && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="xs"
-                icon={<ArrowCounterClockwiseIcon size={14} />}
-                onClick={handleResetPrompt}
-              >
-                Reset to default
-              </Button>
-            )}
+        <fieldset className="border-kumo-line bg-kumo-base rounded-lg border p-5">
+          <legend className="text-kumo-default px-1 text-sm font-medium">AI features</legend>
+          {(
+            [
+              ["assistant", "AI assistant"],
+              ["replies", "AI reply drafting"],
+              ["spam", "AI spam detection"],
+              ["mcp", "MCP access"],
+            ] satisfies [keyof AIFeatures, string][]
+          ).map(([feature, label]) => (
+            <label key={feature} className="text-kumo-default flex min-h-12 cursor-pointer items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                name={`aiFeatures.${feature}`}
+                checked={aiFeatures[feature]}
+                onChange={(event) => setAIFeatures({ ...aiFeatures, [feature]: event.target.checked })}
+              />
+              {label}
+            </label>
+          ))}
+          <div className="mt-3">
+            <Input
+              label="Workers AI model"
+              name="aiModel"
+              value={aiModel}
+              onChange={(event) => setAIModel(event.target.value)}
+              placeholder="@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              maxLength={200}
+              aria-describedby="ai-model-help"
+            />
+            <p id="ai-model-help" className="text-kumo-subtle mt-2 text-xs">
+              Applies to the assistant, AI replies, and safety checks. Spam detection always uses Jev. Leave empty to
+              use the built-in models. Choose a text-generation model with function calling for the assistant from the{" "}
+              <a href="https://developers.cloudflare.com/workers-ai/models/" className="underline">
+                Workers AI catalog
+              </a>
+              .
+            </p>
           </div>
-          <p className="text-kumo-subtle mb-3 text-xs">
-            Customize how the AI agent behaves for this mailbox. Leave empty to use the built-in default prompt.
-          </p>
-          <textarea
-            value={agentPrompt}
-            onChange={(e) => setAgentPrompt(e.target.value)}
-            placeholder={PROMPT_PLACEHOLDER}
-            rows={12}
-            className="border-kumo-line bg-kumo-recessed text-kumo-default placeholder:text-kumo-subtle focus:ring-kumo-focus w-full resize-y rounded-lg border px-3 py-2 font-mono text-xs leading-relaxed focus:ring-1 focus:outline-none"
-          />
-          <p className="text-kumo-subtle mt-2 text-xs">
-            The prompt is sent as the system message to the AI model. It controls the agent's personality, writing
-            style, and behavior rules.
-          </p>
-        </div>
+        </fieldset>
+
+        {/* Agent System Prompt */}
+        {(aiFeatures.assistant || aiFeatures.replies) && (
+          <div className="border-kumo-line bg-kumo-base rounded-lg border p-5">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <RobotIcon size={16} weight="duotone" className="text-kumo-subtle" />
+                <span className="text-kumo-default text-sm font-medium">AI Agent Prompt</span>
+                {isCustomPrompt ? <Badge variant="primary">Custom</Badge> : <Badge variant="secondary">Default</Badge>}
+              </div>
+              {isCustomPrompt && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="xs"
+                  icon={<ArrowCounterClockwiseIcon size={14} />}
+                  onClick={handleResetPrompt}
+                >
+                  Reset to default
+                </Button>
+              )}
+            </div>
+            <p className="text-kumo-subtle mb-3 text-xs">
+              Customize how the AI agent behaves for this mailbox. Leave empty to use the built-in default prompt.
+            </p>
+            <textarea
+              value={agentPrompt}
+              onChange={(e) => setAgentPrompt(e.target.value)}
+              placeholder={PROMPT_PLACEHOLDER}
+              rows={12}
+              className="border-kumo-line bg-kumo-recessed text-kumo-default placeholder:text-kumo-subtle focus:ring-kumo-focus w-full resize-y rounded-lg border px-3 py-2 font-mono text-xs leading-relaxed focus:ring-1 focus:outline-none"
+            />
+            <p className="text-kumo-subtle mt-2 text-xs">
+              The prompt is sent as the system message to the AI model. It controls the agent's personality, writing
+              style, and behavior rules.
+            </p>
+          </div>
+        )}
 
         {/* Save */}
         <div className="flex justify-end">

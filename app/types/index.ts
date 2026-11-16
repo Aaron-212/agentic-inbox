@@ -2,13 +2,16 @@
 // Licensed under the Apache 2.0 license found in the LICENSE file or at:
 //     https://opensource.org/licenses/Apache-2.0
 
+import type { AIFeatureSettings } from "shared/ai-features";
+import type { AIModelSettings } from "shared/ai-model";
+
 export interface SignatureSettings {
   enabled: boolean;
   text: string;
   html?: string;
 }
 
-export interface MailboxSettings {
+export interface MailboxSettings extends AIFeatureSettings, AIModelSettings {
   fromName?: string;
   forwarding?: { enabled: boolean; email: string };
   signature?: SignatureSettings;
