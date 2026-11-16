@@ -239,14 +239,13 @@ export default function EmailListRoute() {
 
   const formatParticipants = (email: Email): string => {
     if (email.participants) {
-      const names = email.participants
+      const addresses = email.participants
         .split(",")
-        .map((p) => p.trim().split("@")[0])
-        .filter((name, idx, arr) => arr.indexOf(name) === idx);
-      if (names.length <= 3) return names.join(", ");
-      return `${names.slice(0, 2).join(", ")} +${names.length - 2}`;
+        .map((p) => p.trim())
+        .filter((address, idx, arr) => address && arr.indexOf(address) === idx);
+      if (addresses.length > 0) return addresses.join(", ");
     }
-    return email.sender.split("@")[0];
+    return email.sender;
   };
 
   return (
@@ -328,7 +327,7 @@ export default function EmailListRoute() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <span
-                        className={`truncate text-sm ${hasUnread(email) ? "text-kumo-default font-semibold" : "text-kumo-subtle"}`}
+                        className={`min-w-0 flex-1 text-sm wrap-anywhere ${hasUnread(email) ? "text-kumo-default font-semibold" : "text-kumo-subtle"}`}
                       >
                         {formatParticipants(email)}
                       </span>

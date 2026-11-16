@@ -165,9 +165,9 @@ export default function SearchResultsRoute() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span
-                          className={`truncate text-sm ${!email.read ? "text-kumo-default font-semibold" : "text-kumo-subtle"}`}
+                          className={`min-w-0 flex-1 text-sm wrap-anywhere ${!email.read ? "text-kumo-default font-semibold" : "text-kumo-subtle"}`}
                         >
-                          {highlightTerms(email.sender.split("@")[0], urlQuery)}
+                          {highlightTerms(email.sender, urlQuery)}
                         </span>
                         {folderName && <Badge variant="outline">{folderDisplayName(folderName)}</Badge>}
                         <span className="text-kumo-subtle ml-auto shrink-0 text-sm">{formatListDate(email.date)}</span>
