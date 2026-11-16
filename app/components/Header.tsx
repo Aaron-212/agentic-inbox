@@ -57,7 +57,7 @@ export default function Header() {
   const isSettingsActive = location.pathname.includes("/settings");
 
   return (
-    <header className="h-16 flex items-center gap-2 px-4 bg-kumo-base border-b border-kumo-line sticky top-0 z-10 md:px-5 md:gap-4">
+    <header className="bg-kumo-base border-kumo-line sticky top-0 z-10 flex h-16 items-center gap-2 border-b px-4 md:gap-4 md:px-5">
       {/* Hamburger menu - mobile only */}
       <Button
         variant="ghost"
@@ -68,7 +68,7 @@ export default function Header() {
         aria-label="Toggle sidebar"
         aria-expanded={isSidebarOpen}
         aria-controls="folder-sidebar"
-        className="md:hidden shrink-0"
+        className="shrink-0 md:hidden"
       />
 
       <Tooltip
@@ -78,18 +78,18 @@ export default function Header() {
             aria-label={isDesktopSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
             aria-expanded={isDesktopSidebarOpen}
             aria-controls="folder-sidebar"
-            className="hidden md:inline-flex shrink-0"
+            className="hidden shrink-0 md:inline-flex"
           />
         }
       />
 
       {/* Search - full on desktop, collapsible on mobile */}
       <div
-        className={`flex-1 max-w-lg transition-all flex items-center gap-1 ${
+        className={`flex max-w-lg flex-1 items-center gap-1 transition-all ${
           isSearchExpanded ? "flex" : "hidden md:flex"
         }`}
       >
-        <div className="flex-1 relative flex items-center">
+        <div className="relative flex flex-1 items-center">
           <Input
             className="w-full"
             aria-label="Search emails"
@@ -102,7 +102,7 @@ export default function Header() {
             <button
               type="button"
               onClick={clearSearch}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded text-kumo-subtle hover:text-kumo-default hover:bg-kumo-tint transition-colors"
+              className="text-kumo-subtle hover:text-kumo-default hover:bg-kumo-tint absolute top-1/2 right-2 -translate-y-1/2 rounded p-0.5 transition-colors"
               aria-label="Clear search"
             >
               <XIcon size={14} />
@@ -133,11 +133,11 @@ export default function Header() {
           icon={<MagnifyingGlassIcon size={20} />}
           onClick={() => setIsSearchExpanded(true)}
           aria-label="Search"
-          className="md:hidden shrink-0"
+          className="shrink-0 md:hidden"
         />
       )}
 
-      <div className="flex items-center gap-1 ml-auto shrink-0">
+      <div className="ml-auto flex shrink-0 items-center gap-1">
         <Tooltip
           content={isAgentPanelOpen ? "Hide agent panel" : "Show agent panel"}
           side="bottom"

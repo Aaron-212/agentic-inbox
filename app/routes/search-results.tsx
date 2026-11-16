@@ -89,7 +89,7 @@ export default function SearchResultsRoute() {
   return (
     <MailboxSplitView selectedEmailId={selectedEmailId}>
       <>
-        <div className="flex items-center gap-2 px-4 py-3.5 border-b border-kumo-line shrink-0 md:px-5">
+        <div className="border-kumo-line flex shrink-0 items-center gap-2 border-b px-4 py-3.5 md:px-5">
           <Tooltip
             content="Back to inbox"
             side="bottom"
@@ -105,9 +105,9 @@ export default function SearchResultsRoute() {
             }
           />
           <div className="min-w-0 flex-1">
-            <h1 className="text-lg font-semibold text-kumo-default truncate">Search Results</h1>
+            <h1 className="text-kumo-default truncate text-lg font-semibold">Search Results</h1>
             {!isLoading && (
-              <span className="text-sm text-kumo-subtle">
+              <span className="text-kumo-subtle text-sm">
                 {totalCount} result{totalCount !== 1 ? "s" : ""}
                 {urlQuery ? ` for "${urlQuery}"` : ""}
               </span>
@@ -120,22 +120,22 @@ export default function SearchResultsRoute() {
               <Loader size="lg" />
             </div>
           ) : results.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-24 px-6 text-center">
+            <div className="flex flex-col items-center justify-center px-6 py-24 text-center">
               <div className="mb-4">
                 <MagnifyingGlassIcon size={48} weight="thin" className="text-kumo-subtle" />
               </div>
-              <h3 className="text-base font-semibold text-kumo-default mb-1.5">No results found</h3>
-              <p className="text-sm text-kumo-subtle max-w-xs">
+              <h3 className="text-kumo-default mb-1.5 text-base font-semibold">No results found</h3>
+              <p className="text-kumo-subtle max-w-xs text-sm">
                 {urlQuery
                   ? `Nothing matched "${urlQuery}". Try different keywords or check your spelling.`
                   : "Enter a search term to find emails by subject, sender, or content."}
               </p>
               {urlQuery && (
-                <p className="text-xs text-kumo-subtle mt-3 max-w-sm">
-                  Tip: Use operators like <code className="bg-kumo-tint px-1 rounded">from:name</code>,{" "}
-                  <code className="bg-kumo-tint px-1 rounded">is:unread</code>,{" "}
-                  <code className="bg-kumo-tint px-1 rounded">has:attachment</code>,{" "}
-                  <code className="bg-kumo-tint px-1 rounded">before:2025-01-01</code>
+                <p className="text-kumo-subtle mt-3 max-w-sm text-xs">
+                  Tip: Use operators like <code className="bg-kumo-tint rounded px-1">from:name</code>,{" "}
+                  <code className="bg-kumo-tint rounded px-1">is:unread</code>,{" "}
+                  <code className="bg-kumo-tint rounded px-1">has:attachment</code>,{" "}
+                  <code className="bg-kumo-tint rounded px-1">before:2025-01-01</code>
                 </p>
               )}
             </div>
@@ -157,28 +157,28 @@ export default function SearchResultsRoute() {
                         handleRowClick(email);
                       }
                     }}
-                    className={`group flex items-center gap-3 w-full text-left cursor-pointer transition-colors border-b border-kumo-line px-4 py-2.5 md:px-5 md:py-3 ${isPanelOpen ? "md:px-4 md:py-2.5" : ""} ${isSelected ? "bg-kumo-tint" : "hover:bg-kumo-tint"}`}
+                    className={`group border-kumo-line flex w-full cursor-pointer items-center gap-3 border-b px-4 py-2.5 text-left transition-colors md:px-5 md:py-3 ${isPanelOpen ? "md:px-4 md:py-2.5" : ""} ${isSelected ? "bg-kumo-tint" : "hover:bg-kumo-tint"}`}
                   >
-                    <div className="w-2.5 shrink-0 flex justify-center">
-                      {!email.read && <div className="h-2 w-2 rounded-full bg-kumo-brand" />}
+                    <div className="flex w-2.5 shrink-0 justify-center">
+                      {!email.read && <div className="bg-kumo-brand h-2 w-2 rounded-full" />}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span
-                          className={`truncate text-sm ${!email.read ? "font-semibold text-kumo-default" : "text-kumo-subtle"}`}
+                          className={`truncate text-sm ${!email.read ? "text-kumo-default font-semibold" : "text-kumo-subtle"}`}
                         >
                           {highlightTerms(email.sender.split("@")[0], urlQuery)}
                         </span>
                         {folderName && <Badge variant="outline">{folderDisplayName(folderName)}</Badge>}
-                        <span className="text-sm text-kumo-subtle shrink-0 ml-auto">{formatListDate(email.date)}</span>
+                        <span className="text-kumo-subtle ml-auto shrink-0 text-sm">{formatListDate(email.date)}</span>
                       </div>
                       <div
-                        className={`truncate text-sm mt-0.5 ${!email.read ? "font-medium text-kumo-default" : "text-kumo-subtle"}`}
+                        className={`mt-0.5 truncate text-sm ${!email.read ? "text-kumo-default font-medium" : "text-kumo-subtle"}`}
                       >
                         {highlightTerms(email.subject, urlQuery)}
                       </div>
                       {snippet && (
-                        <div className="truncate text-xs text-kumo-subtle mt-0.5">
+                        <div className="text-kumo-subtle mt-0.5 truncate text-xs">
                           {highlightTerms(snippet, urlQuery)}
                         </div>
                       )}
@@ -190,7 +190,7 @@ export default function SearchResultsRoute() {
           )}
         </div>
         {totalCount > SEARCH_PAGE_SIZE && (
-          <div className="flex justify-center py-3 border-t border-kumo-line shrink-0">
+          <div className="border-kumo-line flex shrink-0 justify-center border-t py-3">
             <Pagination page={currentPage} setPage={setPage} perPage={SEARCH_PAGE_SIZE} totalCount={totalCount}>
               <div className="grow" aria-live="polite" aria-atomic="true">
                 <Pagination.Info />

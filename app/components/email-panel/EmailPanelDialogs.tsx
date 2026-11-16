@@ -75,29 +75,29 @@ export default function EmailPanelDialogs({
           <Dialog.Title>
             Email Source Headers
             {sourceViewEmail && (
-              <span className="text-sm font-normal text-kumo-subtle ml-2">{sourceViewEmail.subject}</span>
+              <span className="text-kumo-subtle ml-2 text-sm font-normal">{sourceViewEmail.subject}</span>
             )}
           </Dialog.Title>
           {sourceViewEmail && (
             <div className="mt-4 max-h-[60vh] overflow-y-auto">
-              <table className="w-full text-sm border-collapse">
+              <table className="w-full border-collapse text-sm">
                 <tbody>
                   {sourceHeaders.map((header, idx) => (
                     <tr key={`${header.key}-${idx}`} className={idx % 2 === 0 ? "bg-kumo-tint/50" : ""}>
-                      <td className="py-1.5 px-3 font-mono font-semibold text-kumo-default whitespace-nowrap align-top w-[160px]">
+                      <td className="text-kumo-default w-[160px] px-3 py-1.5 align-top font-mono font-semibold whitespace-nowrap">
                         {header.key}
                       </td>
-                      <td className="py-1.5 px-3 font-mono text-kumo-subtle break-all">{header.value}</td>
+                      <td className="text-kumo-subtle px-3 py-1.5 font-mono break-all">{header.value}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
               {sourceHeaders.length === 0 && (
-                <p className="text-sm text-kumo-subtle text-center py-8">No header data available for this email.</p>
+                <p className="text-kumo-subtle py-8 text-center text-sm">No header data available for this email.</p>
               )}
             </div>
           )}
-          <div className="flex justify-end mt-4">
+          <div className="mt-4 flex justify-end">
             <Dialog.Close
               render={
                 <Button variant="secondary" size="sm">
@@ -118,15 +118,15 @@ export default function EmailPanelDialogs({
         <Dialog size="lg">
           <Dialog.Title>{previewImage?.filename}</Dialog.Title>
           {previewImage && (
-            <div className="mt-4 flex flex-col items-center justify-center bg-kumo-tint/30 rounded-lg p-4 min-h-[200px]">
+            <div className="bg-kumo-tint/30 mt-4 flex min-h-[200px] flex-col items-center justify-center rounded-lg p-4">
               <img
                 src={previewImage.url}
                 alt={previewImage.filename}
-                className="max-w-full max-h-[70vh] object-contain rounded shadow-sm"
+                className="max-h-[70vh] max-w-full rounded object-contain shadow-sm"
               />
             </div>
           )}
-          <div className="flex justify-between items-center mt-4">
+          <div className="mt-4 flex items-center justify-between">
             <Button
               variant="secondary"
               size="sm"

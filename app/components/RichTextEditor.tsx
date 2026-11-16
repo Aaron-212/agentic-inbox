@@ -88,9 +88,9 @@ export default function RichTextEditor({ value, onChange, disabled = false }: Ri
   if (!editor) return null;
 
   return (
-    <div className="rounded-lg border border-kumo-line overflow-hidden flex flex-col h-full">
+    <div className="border-kumo-line flex h-full flex-col overflow-hidden rounded-lg border">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-0.5 bg-kumo-recessed px-2 py-1.5 border-b border-kumo-line shrink-0">
+      <div className="bg-kumo-recessed border-kumo-line flex shrink-0 flex-wrap items-center gap-0.5 border-b px-2 py-1.5">
         {/* Text formatting */}
         <Tooltip
           content="Bold"
@@ -153,7 +153,7 @@ export default function RichTextEditor({ value, onChange, disabled = false }: Ri
           }
         />
 
-        <div className="mx-1 h-5 w-px bg-kumo-fill" />
+        <div className="bg-kumo-fill mx-1 h-5 w-px" />
 
         {/* Lists */}
         <Tooltip
@@ -187,7 +187,7 @@ export default function RichTextEditor({ value, onChange, disabled = false }: Ri
           }
         />
 
-        <div className="mx-1 h-5 w-px bg-kumo-fill" />
+        <div className="bg-kumo-fill mx-1 h-5 w-px" />
 
         {/* Block formatting */}
         <Tooltip
@@ -253,7 +253,7 @@ export default function RichTextEditor({ value, onChange, disabled = false }: Ri
           }
         />
 
-        <div className="mx-1 h-5 w-px bg-kumo-fill" />
+        <div className="bg-kumo-fill mx-1 h-5 w-px" />
 
         {/* Undo/Redo */}
         <Tooltip

@@ -73,15 +73,15 @@ export default function ThreadMessage({
         <button
           type="button"
           onClick={onToggleExpand}
-          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-kumo-tint rounded-lg text-left"
+          className="hover:bg-kumo-tint flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left"
         >
           <Avatar isDraft={isDraft} isSelf={isSelf} sender={email.sender} />
-          <div className="flex-1 min-w-0">
+          <div className="min-w-0 flex-1">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-kumo-default truncate">{senderLabel}</span>
-              <span className="text-xs text-kumo-subtle shrink-0">{formatDetailDate(email.date)}</span>
+              <span className="text-kumo-default truncate text-sm font-medium">{senderLabel}</span>
+              <span className="text-kumo-subtle shrink-0 text-xs">{formatDetailDate(email.date)}</span>
             </div>
-            <p className="text-xs text-kumo-subtle truncate">{stripHtml(email.body || "").slice(0, 80)}</p>
+            <p className="text-kumo-subtle truncate text-xs">{stripHtml(email.body || "").slice(0, 80)}</p>
           </div>
           <CaretDownIcon size={14} className="text-kumo-subtle shrink-0" />
         </button>
@@ -92,23 +92,23 @@ export default function ThreadMessage({
   return (
     <div className={`group/thread-msg ${containerClassName}`}>
       <div className="px-4 py-4 md:px-6">
-        <div className="flex items-center justify-between gap-3 mb-3">
-          <div className="flex items-center gap-2.5 min-w-0">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-2.5">
             <button type="button" onClick={onToggleExpand} className="shrink-0" aria-label="Collapse message">
-              <div className="cursor-pointer hover:ring-2 hover:ring-kumo-brand/30 transition-shadow rounded-full">
+              <div className="hover:ring-kumo-brand/30 cursor-pointer rounded-full transition-shadow hover:ring-2">
                 <Avatar isDraft={isDraft} isSelf={isSelf} sender={email.sender} />
               </div>
             </button>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-kumo-default truncate">{senderLabel}</span>
+                <span className="text-kumo-default truncate text-sm font-medium">{senderLabel}</span>
                 {isDraft && <Badge variant="outline">Draft</Badge>}
               </div>
-              <div className="text-xs text-kumo-subtle">To: {email.recipient}</div>
+              <div className="text-kumo-subtle text-xs">To: {email.recipient}</div>
             </div>
           </div>
-          <div className="flex items-center gap-1 shrink-0">
-            <span className="text-xs text-kumo-subtle">{formatShortDate(email.date)}</span>
+          <div className="flex shrink-0 items-center gap-1">
+            <span className="text-kumo-subtle text-xs">{formatShortDate(email.date)}</span>
             {onViewSource && (
               <Tooltip
                 content="View source"
@@ -121,7 +121,7 @@ export default function ThreadMessage({
                     icon={<CodeIcon size={14} />}
                     onClick={onViewSource}
                     aria-label="View source"
-                    className="transition-opacity !h-6 !w-6"
+                    className="!h-6 !w-6 transition-opacity"
                   />
                 }
               />
@@ -140,7 +140,7 @@ export default function ThreadMessage({
         </div>
 
         {isDraft && (onSendDraft || onEditDraft || onDeleteDraft) && (
-          <div className="flex gap-2 mt-3 md:ml-[42px]">
+          <div className="mt-3 flex gap-2 md:ml-[42px]">
             {onSendDraft && (
               <Button
                 variant="primary"

@@ -24,16 +24,16 @@ function LazyAgentPanel() {
 
   if (loadError) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <span className="text-xs text-kumo-danger">{loadError}</span>
+      <div className="flex h-full items-center justify-center">
+        <span className="text-kumo-danger text-xs">{loadError}</span>
       </div>
     );
   }
   if (!AgentChat) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-2">
+      <div className="flex h-full flex-col items-center justify-center gap-2">
         <Loader size="base" />
-        <span className="text-xs text-kumo-subtle">Loading agent...</span>
+        <span className="text-kumo-subtle text-xs">Loading agent...</span>
       </div>
     );
   }
@@ -44,16 +44,16 @@ export default function AgentSidebar() {
   const [activeTab, setActiveTab] = useState<"agent" | "mcp">("agent");
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full flex-col">
       {/* Tab bar */}
-      <div className="h-16 flex items-center border-b border-kumo-line shrink-0">
+      <div className="border-kumo-line flex h-16 shrink-0 items-center border-b">
         <button
           type="button"
           onClick={() => setActiveTab("agent")}
-          className={`flex items-center gap-1.5 px-8 h-full text-base font-medium transition-colors border-b-2 bg-transparent cursor-pointer ${
+          className={`flex h-full cursor-pointer items-center gap-1.5 border-b-2 bg-transparent px-8 text-base font-medium transition-colors ${
             activeTab === "agent"
               ? "border-kumo-brand text-kumo-default"
-              : "border-transparent text-kumo-subtle hover:text-kumo-default"
+              : "text-kumo-subtle hover:text-kumo-default border-transparent"
           }`}
         >
           <RobotIcon size={16} weight={activeTab === "agent" ? "fill" : "regular"} />
@@ -62,10 +62,10 @@ export default function AgentSidebar() {
         <button
           type="button"
           onClick={() => setActiveTab("mcp")}
-          className={`flex items-center gap-1.5 px-8 h-full text-base font-medium transition-colors border-b-2 bg-transparent cursor-pointer ${
+          className={`flex h-full cursor-pointer items-center gap-1.5 border-b-2 bg-transparent px-8 text-base font-medium transition-colors ${
             activeTab === "mcp"
               ? "border-kumo-brand text-kumo-default"
-              : "border-transparent text-kumo-subtle hover:text-kumo-default"
+              : "text-kumo-subtle hover:text-kumo-default border-transparent"
           }`}
         >
           <PlugsIcon size={16} weight={activeTab === "mcp" ? "fill" : "regular"} />
@@ -74,7 +74,7 @@ export default function AgentSidebar() {
       </div>
 
       {/* Tab content — keep agent mounted so chat isn't lost */}
-      <div className="flex-1 min-h-0 overflow-hidden">
+      <div className="min-h-0 flex-1 overflow-hidden">
         <div className={activeTab === "agent" ? "h-full" : "hidden"}>
           <LazyAgentPanel />
         </div>

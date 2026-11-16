@@ -127,18 +127,18 @@ export default function HomeRoute() {
   const isLoading = !configData;
 
   return (
-    <div className="min-h-screen bg-kumo-recessed">
+    <div className="bg-kumo-recessed min-h-screen">
       <div className="mx-auto max-w-2xl px-4 py-8 md:px-6 md:py-16">
         <div className="mb-8">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-kumo-default">Mailboxes</h1>
+            <h1 className="text-kumo-default text-2xl font-bold">Mailboxes</h1>
             {!isConfigured && (
               <Button variant="primary" icon={<PlusIcon size={16} />} onClick={() => setIsCreateOpen(true)}>
                 New Mailbox
               </Button>
             )}
           </div>
-          {domains.length > 0 && <p className="text-sm text-kumo-subtle mt-1">{domains.join(", ")}</p>}
+          {domains.length > 0 && <p className="text-kumo-subtle mt-1 text-sm">{domains.join(", ")}</p>}
         </div>
 
         {isLoading ? (
@@ -146,21 +146,21 @@ export default function HomeRoute() {
             <Loader size="lg" />
           </div>
         ) : accounts.length > 0 ? (
-          <div className="rounded-xl border border-kumo-line bg-kumo-base overflow-hidden">
+          <div className="border-kumo-line bg-kumo-base overflow-hidden rounded-xl border">
             {accounts.map((account, idx) => (
               <RouterLink
                 key={account.id}
                 to={`/mailbox/${account.id}`}
-                className={`group flex items-center gap-4 px-5 py-4 no-underline transition-colors hover:bg-kumo-tint ${
-                  idx > 0 ? "border-t border-kumo-line" : ""
+                className={`group hover:bg-kumo-tint flex items-center gap-4 px-5 py-4 no-underline transition-colors ${
+                  idx > 0 ? "border-kumo-line border-t" : ""
                 }`}
               >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-kumo-fill text-sm font-bold text-kumo-default">
+                <div className="bg-kumo-fill text-kumo-default flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold">
                   {account.name.charAt(0).toUpperCase()}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-sm font-medium text-kumo-default truncate">{account.name}</div>
-                  <div className="text-sm text-kumo-subtle">{account.email}</div>
+                  <div className="text-kumo-default truncate text-sm font-medium">{account.name}</div>
+                  <div className="text-kumo-subtle text-sm">{account.email}</div>
                 </div>
                 {!isConfigured && (
                   <Button
@@ -184,13 +184,13 @@ export default function HomeRoute() {
             ))}
           </div>
         ) : (
-          <div className="rounded-xl border border-kumo-line bg-kumo-base py-16 px-6">
+          <div className="border-kumo-line bg-kumo-base rounded-xl border px-6 py-16">
             <div className="flex flex-col items-center text-center">
               <div className="mb-4">
                 <EnvelopeIcon size={48} weight="thin" className="text-kumo-subtle" />
               </div>
-              <h3 className="text-base font-semibold text-kumo-default mb-1.5">No mailboxes yet</h3>
-              <p className="text-sm text-kumo-subtle max-w-sm mb-5">
+              <h3 className="text-kumo-default mb-1.5 text-base font-semibold">No mailboxes yet</h3>
+              <p className="text-kumo-subtle mb-5 max-w-sm text-sm">
                 {isConfigured
                   ? "Your email routing is configured but no mailboxes have been created yet. They will appear here automatically."
                   : "Create a mailbox to start sending and receiving emails with your domain."}
@@ -208,7 +208,7 @@ export default function HomeRoute() {
       {/* Create Dialog */}
       <Dialog.Root open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <Dialog size="sm" className="p-6">
-          <Dialog.Title className="text-base font-semibold mb-5">Create New Mailbox</Dialog.Title>
+          <Dialog.Title className="mb-5 text-base font-semibold">Create New Mailbox</Dialog.Title>
           <form onSubmit={handleCreate} className="space-y-4">
             {createError && (
               <Text variant="error" size="sm">
@@ -216,7 +216,7 @@ export default function HomeRoute() {
               </Text>
             )}
             <div>
-              <span className="text-sm font-medium text-kumo-default mb-1.5 block">Email Address</span>
+              <span className="text-kumo-default mb-1.5 block text-sm font-medium">Email Address</span>
               <div className="flex items-center gap-2">
                 <div className="flex-1">
                   <Input
@@ -228,7 +228,7 @@ export default function HomeRoute() {
                     required
                   />
                 </div>
-                <span className="text-sm text-kumo-subtle">@</span>
+                <span className="text-kumo-subtle text-sm">@</span>
                 {domains.length > 1 ? (
                   <div className="flex-1">
                     <Select
@@ -246,7 +246,7 @@ export default function HomeRoute() {
                     </Select>
                   </div>
                 ) : (
-                  <span className="text-sm text-kumo-subtle">{selectedDomain || "no domain"}</span>
+                  <span className="text-kumo-subtle text-sm">{selectedDomain || "no domain"}</span>
                 )}
               </div>
             </div>
@@ -282,8 +282,8 @@ export default function HomeRoute() {
         }}
       >
         <Dialog size="sm" className="p-6">
-          <Dialog.Title className="text-base font-semibold mb-2">Delete Mailbox</Dialog.Title>
-          <Dialog.Description className="text-kumo-subtle text-sm mb-5">
+          <Dialog.Title className="mb-2 text-base font-semibold">Delete Mailbox</Dialog.Title>
+          <Dialog.Description className="text-kumo-subtle mb-5 text-sm">
             Are you sure you want to delete <strong className="text-kumo-default">{mailboxToDelete?.email}</strong>?
             This action cannot be undone.
           </Dialog.Description>

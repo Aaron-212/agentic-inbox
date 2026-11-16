@@ -65,7 +65,7 @@ export default function EmailPanelToolbar({
   onDelete,
 }: EmailPanelToolbarProps) {
   return (
-    <div className="flex h-12 flex-wrap items-center gap-1 px-3 border-b border-kumo-line shrink-0 md:px-4">
+    <div className="border-kumo-line flex h-12 shrink-0 flex-wrap items-center gap-1 border-b px-3 md:px-4">
       <Button
         variant="ghost"
         shape="square"
@@ -73,7 +73,7 @@ export default function EmailPanelToolbar({
         icon={<ArrowLeftIcon size={18} />}
         onClick={onBack}
         aria-label="Back to list"
-        className="md:hidden shrink-0"
+        className="shrink-0 md:hidden"
       />
 
       {isDraftFolder ? (
@@ -158,7 +158,7 @@ export default function EmailPanelToolbar({
         </>
       )}
 
-      <div className="h-5 w-px bg-kumo-fill mx-0.5" />
+      <div className="bg-kumo-fill mx-0.5 h-5 w-px" />
 
       <Tooltip
         content={email.starred ? "Unstar" : "Star"}
@@ -277,14 +277,14 @@ function MoveToFolderMenu({ folders, onMove }: { folders: Folder[]; onMove: (id:
         }
       />
       {open && (
-        <div className="absolute top-full left-0 z-50 mt-1 min-w-[160px] rounded-lg border border-kumo-line bg-kumo-elevated shadow-lg py-1">
-          <div className="px-3 py-1.5 text-xs font-medium text-kumo-subtle">Move to</div>
-          <div className="h-px bg-kumo-line my-1" />
+        <div className="border-kumo-line bg-kumo-elevated absolute top-full left-0 z-50 mt-1 min-w-[160px] rounded-lg border py-1 shadow-lg">
+          <div className="text-kumo-subtle px-3 py-1.5 text-xs font-medium">Move to</div>
+          <div className="bg-kumo-line my-1 h-px" />
           {folders.map((f) => (
             <button
               key={f.id}
               type="button"
-              className="w-full text-left px-3 py-1.5 text-sm text-kumo-default hover:bg-kumo-overlay transition-colors"
+              className="text-kumo-default hover:bg-kumo-overlay w-full px-3 py-1.5 text-left text-sm transition-colors"
               onClick={() => {
                 onMove(f.id);
                 setOpen(false);

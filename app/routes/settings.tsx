@@ -70,8 +70,8 @@ export default function SettingsRoute() {
   const isCustomPrompt = agentPrompt.trim().length > 0;
 
   return (
-    <div className="px-4 py-4 md:px-8 md:py-6 h-full overflow-y-auto">
-      <h1 className="text-lg font-semibold text-kumo-default mb-6">Settings</h1>
+    <div className="h-full overflow-y-auto px-4 py-4 md:px-8 md:py-6">
+      <h1 className="text-kumo-default mb-6 text-lg font-semibold">Settings</h1>
 
       <form
         className="space-y-6"
@@ -81,17 +81,17 @@ export default function SettingsRoute() {
         }}
       >
         {/* Account */}
-        <div className="rounded-lg border border-kumo-line bg-kumo-base p-5">
-          <div className="text-sm font-medium text-kumo-default mb-4">Account</div>
+        <div className="border-kumo-line bg-kumo-base rounded-lg border p-5">
+          <div className="text-kumo-default mb-4 text-sm font-medium">Account</div>
           <div className="space-y-3">
             <Input label="Display Name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
             <Input label="Email" type="email" value={mailbox.email} disabled />
           </div>
         </div>
 
-        <div className="rounded-lg border border-kumo-line bg-kumo-base p-5">
-          <div className="text-sm font-medium text-kumo-default mb-4">Forwarding</div>
-          <label className="flex items-center gap-2 text-sm text-kumo-default mb-3">
+        <div className="border-kumo-line bg-kumo-base rounded-lg border p-5">
+          <div className="text-kumo-default mb-4 text-sm font-medium">Forwarding</div>
+          <label className="text-kumo-default mb-3 flex items-center gap-2 text-sm">
             <input
               type="checkbox"
               name="forwardingEnabled"
@@ -124,11 +124,11 @@ export default function SettingsRoute() {
         </div>
 
         {/* Agent System Prompt */}
-        <div className="rounded-lg border border-kumo-line bg-kumo-base p-5">
-          <div className="flex items-center justify-between mb-4">
+        <div className="border-kumo-line bg-kumo-base rounded-lg border p-5">
+          <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <RobotIcon size={16} weight="duotone" className="text-kumo-subtle" />
-              <span className="text-sm font-medium text-kumo-default">AI Agent Prompt</span>
+              <span className="text-kumo-default text-sm font-medium">AI Agent Prompt</span>
               {isCustomPrompt ? <Badge variant="primary">Custom</Badge> : <Badge variant="secondary">Default</Badge>}
             </div>
             {isCustomPrompt && (
@@ -143,7 +143,7 @@ export default function SettingsRoute() {
               </Button>
             )}
           </div>
-          <p className="text-xs text-kumo-subtle mb-3">
+          <p className="text-kumo-subtle mb-3 text-xs">
             Customize how the AI agent behaves for this mailbox. Leave empty to use the built-in default prompt.
           </p>
           <textarea
@@ -151,9 +151,9 @@ export default function SettingsRoute() {
             onChange={(e) => setAgentPrompt(e.target.value)}
             placeholder={PROMPT_PLACEHOLDER}
             rows={12}
-            className="w-full resize-y rounded-lg border border-kumo-line bg-kumo-recessed px-3 py-2 text-xs text-kumo-default placeholder:text-kumo-subtle focus:outline-none focus:ring-1 focus:ring-kumo-focus font-mono leading-relaxed"
+            className="border-kumo-line bg-kumo-recessed text-kumo-default placeholder:text-kumo-subtle focus:ring-kumo-focus w-full resize-y rounded-lg border px-3 py-2 font-mono text-xs leading-relaxed focus:ring-1 focus:outline-none"
           />
-          <p className="text-xs text-kumo-subtle mt-2">
+          <p className="text-kumo-subtle mt-2 text-xs">
             The prompt is sent as the system message to the AI model. It controls the agent's personality, writing
             style, and behavior rules.
           </p>

@@ -15,23 +15,23 @@ interface SingleMessageViewProps {
 
 export default function SingleMessageView({ email, mailboxId, onPreviewImage }: SingleMessageViewProps) {
   return (
-    <div className="flex flex-col h-full">
-      <div className="px-4 py-4 border-b border-kumo-line md:px-6">
+    <div className="flex h-full flex-col">
+      <div className="border-kumo-line border-b px-4 py-4 md:px-6">
         <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-kumo-fill text-xs font-bold text-kumo-default">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <div className="bg-kumo-fill text-kumo-default flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold">
               {email.sender.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
-              <div className="text-sm font-medium text-kumo-default truncate">{email.sender}</div>
-              <div className="text-xs text-kumo-subtle">To: {email.recipient}</div>
+              <div className="text-kumo-default truncate text-sm font-medium">{email.sender}</div>
+              <div className="text-kumo-subtle text-xs">To: {email.recipient}</div>
             </div>
           </div>
-          <span className="text-xs text-kumo-subtle shrink-0">{formatDetailDate(email.date)}</span>
+          <span className="text-kumo-subtle shrink-0 text-xs">{formatDetailDate(email.date)}</span>
         </div>
       </div>
 
-      <div className="flex-1 min-h-0">
+      <div className="min-h-0 flex-1">
         <EmailIframe body={rewriteInlineImages(email.body || "", mailboxId || "", email.id, email.attachments)} />
       </div>
 
@@ -40,7 +40,7 @@ export default function SingleMessageView({ email, mailboxId, onPreviewImage }: 
         emailId={email.id}
         attachments={email.attachments}
         onPreviewImage={onPreviewImage}
-        className="px-4 py-3 border-t border-kumo-line shrink-0 md:px-6"
+        className="border-kumo-line shrink-0 border-t px-4 py-3 md:px-6"
         showHeading
       />
     </div>

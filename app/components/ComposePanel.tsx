@@ -60,7 +60,7 @@ export default function ComposePanel({ session }: { session: ComposeSession }) {
       {...windowState.rndProps}
       resizeHandleWrapperClass="compose-resize-handles"
       style={{ visibility: session.minimized ? "hidden" : "visible" }}
-      className={`pointer-events-auto border border-kumo-line bg-kumo-base shadow-2xl ${windowState.floating ? "rounded-lg" : ""}`}
+      className={`border-kumo-line bg-kumo-base pointer-events-auto border shadow-2xl ${windowState.floating ? "rounded-lg" : ""}`}
     >
       <dialog
         ref={dialog}
@@ -74,13 +74,13 @@ export default function ComposePanel({ session }: { session: ComposeSession }) {
             minimize();
           }
         }}
-        className={`absolute inset-0 m-0 h-full w-full max-h-none max-w-none border-0 bg-kumo-base p-0 text-kumo-default open:flex open:flex-col ${windowState.floating ? "rounded-lg" : ""}`}
+        className={`bg-kumo-base text-kumo-default absolute inset-0 m-0 h-full max-h-none w-full max-w-none border-0 p-0 open:flex open:flex-col ${windowState.floating ? "rounded-lg" : ""}`}
       >
         <span className="sr-only" role="status">
           {windowState.announcement}
         </span>
         <div
-          className={`flex h-12 shrink-0 items-center justify-between gap-2 border-b border-kumo-line px-4 ${windowState.floating ? "compose-window-titlebar cursor-grab active:cursor-grabbing" : ""}`}
+          className={`border-kumo-line flex h-12 shrink-0 items-center justify-between gap-2 border-b px-4 ${windowState.floating ? "compose-window-titlebar cursor-grab active:cursor-grabbing" : ""}`}
         >
           <h2 id={`${id}-title`} className="min-w-0 truncate text-sm font-semibold">
             {windowState.floating ? (
@@ -144,11 +144,11 @@ export default function ComposePanel({ session }: { session: ComposeSession }) {
                 />
               )}
               <div className="flex items-center justify-between gap-2 text-sm">
-                <span className="truncate text-kumo-subtle">From: {form.mailbox?.email || session.mailboxId}</span>
+                <span className="text-kumo-subtle truncate">From: {form.mailbox?.email || session.mailboxId}</span>
                 {originalId && (
                   <button
                     type="button"
-                    className="shrink-0 text-kumo-link hover:underline"
+                    className="text-kumo-link shrink-0 hover:underline"
                     onClick={() => {
                       navigate(`/mailbox/${session.mailboxId}/emails/inbox?email=${encodeURIComponent(originalId)}`);
                       minimize();
@@ -218,7 +218,7 @@ export default function ComposePanel({ session }: { session: ComposeSession }) {
               />
             </div>
           </fieldset>
-          <div className="flex shrink-0 items-center justify-between gap-2 border-t border-kumo-line px-4 py-3">
+          <div className="border-kumo-line flex shrink-0 items-center justify-between gap-2 border-t px-4 py-3">
             <Button
               type="button"
               variant="ghost"
@@ -229,7 +229,7 @@ export default function ComposePanel({ session }: { session: ComposeSession }) {
               Discard
             </Button>
             <div className="flex min-w-0 items-center gap-2">
-              <span className="truncate text-xs text-kumo-subtle" role="status">
+              <span className="text-kumo-subtle truncate text-xs" role="status">
                 {saveStatus}
               </span>
               {form.saveFailed && (

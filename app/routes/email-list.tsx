@@ -76,16 +76,16 @@ function EmailListSkeleton() {
     <div className="animate-pulse space-y-1 p-2">
       {Array.from({ length: 8 }).map((_, i) => (
         <div key={i} className="flex items-center gap-3 px-3 py-3">
-          <div className="w-4 h-4 rounded bg-kumo-fill" />
-          <div className="w-5 h-5 rounded bg-kumo-fill" />
+          <div className="bg-kumo-fill h-4 w-4 rounded" />
+          <div className="bg-kumo-fill h-5 w-5 rounded" />
           <div className="flex-1 space-y-2">
             <div className="flex items-center gap-2">
-              <div className="h-3 w-24 rounded bg-kumo-fill" />
-              <div className="h-3 w-4 rounded bg-kumo-fill" />
-              <div className="h-3 flex-1 rounded bg-kumo-fill" />
-              <div className="h-3 w-12 rounded bg-kumo-fill" />
+              <div className="bg-kumo-fill h-3 w-24 rounded" />
+              <div className="bg-kumo-fill h-3 w-4 rounded" />
+              <div className="bg-kumo-fill h-3 flex-1 rounded" />
+              <div className="bg-kumo-fill h-3 w-12 rounded" />
             </div>
-            <div className="h-2.5 w-3/4 rounded bg-kumo-fill" />
+            <div className="bg-kumo-fill h-2.5 w-3/4 rounded" />
           </div>
         </div>
       ))}
@@ -101,10 +101,10 @@ function FolderEmptyState({ folder, onCompose }: { folder?: string; onCompose: (
   };
 
   return (
-    <div className="flex flex-col items-center justify-center py-24 px-6 text-center">
+    <div className="flex flex-col items-center justify-center px-6 py-24 text-center">
       <div className="mb-4">{config.icon}</div>
-      <h3 className="text-base font-semibold text-kumo-default mb-1.5">{config.title}</h3>
-      <p className="text-sm text-kumo-subtle max-w-xs mb-5">{config.description}</p>
+      <h3 className="text-kumo-default mb-1.5 text-base font-semibold">{config.title}</h3>
+      <p className="text-kumo-subtle mb-5 max-w-xs text-sm">{config.description}</p>
       {"showCompose" in config && config.showCompose && (
         <Button variant="primary" size="sm" icon={<PencilSimpleIcon size={16} />} onClick={onCompose}>
           Compose
@@ -252,11 +252,11 @@ export default function EmailListRoute() {
   return (
     <MailboxSplitView selectedEmailId={selectedEmailId}>
       {/* Folder header */}
-      <div className="flex h-12 items-center justify-between px-4 border-b border-kumo-line shrink-0 md:px-5">
-        <h1 className="text-lg font-semibold text-kumo-default">{folderName}</h1>
+      <div className="border-kumo-line flex h-12 shrink-0 items-center justify-between border-b px-4 md:px-5">
+        <h1 className="text-kumo-default text-lg font-semibold">{folderName}</h1>
         <div className="flex items-center gap-1">
           {totalCount > 0 && (
-            <span className="text-sm text-kumo-subtle mr-2 hidden sm:inline">
+            <span className="text-kumo-subtle mr-2 hidden text-sm sm:inline">
               {totalCount} conversation{totalCount !== 1 ? "s" : ""}
             </span>
           )}
@@ -299,19 +299,19 @@ export default function EmailListRoute() {
                       handleRowClick(email);
                     }
                   }}
-                  className={`group flex items-center gap-3 w-full text-left cursor-pointer transition-colors border-b border-kumo-line px-4 py-2.5 md:px-6 md:py-3 ${
+                  className={`group border-kumo-line flex w-full cursor-pointer items-center gap-3 border-b px-4 py-2.5 text-left transition-colors md:px-6 md:py-3 ${
                     isPanelOpen ? "md:px-4 md:py-2.5" : ""
                   } ${isSelected ? "bg-kumo-tint" : "hover:bg-kumo-tint"}`}
                 >
                   {/* Unread dot */}
-                  <div className="w-2.5 shrink-0 flex justify-center">
-                    {hasUnread(email) && <div className="h-2 w-2 rounded-full bg-kumo-brand" />}
+                  <div className="flex w-2.5 shrink-0 justify-center">
+                    {hasUnread(email) && <div className="bg-kumo-brand h-2 w-2 rounded-full" />}
                   </div>
 
                   {/* Star */}
                   <button
                     type="button"
-                    className="shrink-0 p-0.5 bg-transparent border-0 cursor-pointer"
+                    className="shrink-0 cursor-pointer border-0 bg-transparent p-0.5"
                     onClick={(e) => {
                       e.stopPropagation();
                       toggleStar(e, email);
@@ -328,30 +328,30 @@ export default function EmailListRoute() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <span
-                        className={`truncate text-sm ${hasUnread(email) ? "font-semibold text-kumo-default" : "text-kumo-subtle"}`}
+                        className={`truncate text-sm ${hasUnread(email) ? "text-kumo-default font-semibold" : "text-kumo-subtle"}`}
                       >
                         {formatParticipants(email)}
                       </span>
                       {(email.thread_count ?? 1) > 1 && (
-                        <span className="shrink-0 text-xs text-kumo-subtle bg-kumo-fill rounded-full px-1.5 py-0.5 font-medium">
+                        <span className="text-kumo-subtle bg-kumo-fill shrink-0 rounded-full px-1.5 py-0.5 text-xs font-medium">
                           {email.thread_count}
                         </span>
                       )}
-                      {email.has_draft && <span className="shrink-0 text-xs text-kumo-danger font-medium">Draft</span>}
+                      {email.has_draft && <span className="text-kumo-danger shrink-0 text-xs font-medium">Draft</span>}
                       {email.needs_reply && !email.has_draft && (
                         <Tooltip
                           content="Needs reply"
                           render={
-                            <span className="shrink-0 text-kumo-warning">
+                            <span className="text-kumo-warning shrink-0">
                               <ArrowBendUpLeftIcon size={14} weight="bold" />
                             </span>
                           }
                         />
                       )}
-                      <span className="text-sm text-kumo-subtle shrink-0 ml-auto">{formatListDate(email.date)}</span>
+                      <span className="text-kumo-subtle ml-auto shrink-0 text-sm">{formatListDate(email.date)}</span>
                     </div>
-                    <div className="truncate text-sm mt-0.5">
-                      <span className={hasUnread(email) ? "font-medium text-kumo-default" : "text-kumo-subtle"}>
+                    <div className="mt-0.5 truncate text-sm">
+                      <span className={hasUnread(email) ? "text-kumo-default font-medium" : "text-kumo-subtle"}>
                         {email.subject}
                       </span>
                       {snippet && <span className="text-kumo-subtle font-normal"> &mdash; {snippet}</span>}
@@ -359,7 +359,7 @@ export default function EmailListRoute() {
                   </div>
 
                   {/* Hover actions */}
-                  <div className="hidden group-hover:flex items-center shrink-0">
+                  <div className="hidden shrink-0 items-center group-hover:flex">
                     <Tooltip
                       content={email.read ? "Mark unread" : "Mark read"}
                       render={
@@ -406,7 +406,7 @@ export default function EmailListRoute() {
 
       {/* Pagination */}
       {totalCount > PAGE_SIZE && (
-        <div className="flex justify-center py-3 border-t border-kumo-line shrink-0">
+        <div className="border-kumo-line flex shrink-0 justify-center border-t py-3">
           <Pagination page={page} setPage={setPage} perPage={PAGE_SIZE} totalCount={totalCount}>
             <div className="grow" aria-live="polite" aria-atomic="true">
               <Pagination.Info />

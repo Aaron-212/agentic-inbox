@@ -72,7 +72,7 @@ function ToolCallBadge({ toolName, state }: { toolName: string; state: string })
   const isDone = state === "output-available" || state === "result" || state === "output-error";
 
   return (
-    <div className="flex items-center gap-1.5 py-1 px-2 rounded bg-kumo-fill/50 text-xs">
+    <div className="bg-kumo-fill/50 flex items-center gap-1.5 rounded px-2 py-1 text-xs">
       <span className="text-kumo-brand">{info.icon}</span>
       <span className="text-kumo-subtle">{info.label}</span>
       {isDone ? (
@@ -99,7 +99,7 @@ function hasDraftReplyTool(message: UIMessage): boolean {
 
 function DraftActions({ onEdit, disabled }: { onEdit: () => void; disabled: boolean }) {
   return (
-    <div className="flex gap-1.5 mt-1">
+    <div className="mt-1 flex gap-1.5">
       <Button variant="primary" size="sm" icon={<PencilSimpleIcon size={14} />} onClick={onEdit} disabled={disabled}>
         Edit & send in composer
       </Button>
@@ -127,17 +127,17 @@ function MessageBubble({
       >
         {isUser ? <UserIcon size={12} weight="bold" /> : <RobotIcon size={12} weight="bold" />}
       </div>
-      <div className={`flex flex-col gap-1 max-w-[85%] min-w-0 ${isUser ? "items-end" : "items-start"}`}>
+      <div className={`flex max-w-[85%] min-w-0 flex-col gap-1 ${isUser ? "items-end" : "items-start"}`}>
         {message.parts.map((part, i) => {
           const key = `${message.id}-part-${i}`;
           if (part.type === "text" && part.text.trim()) {
             return (
               <div
                 key={key}
-                className={`rounded-lg px-3 py-2 text-[13px] leading-relaxed wrap-break-word overflow-wrap-anywhere ${
+                className={`overflow-wrap-anywhere rounded-lg px-3 py-2 text-[13px] leading-relaxed wrap-break-word ${
                   isUser
                     ? "bg-kumo-brand text-kumo-inverse rounded-tr-sm"
-                    : "bg-kumo-elevated text-kumo-default border border-kumo-line rounded-tl-sm overflow-hidden"
+                    : "bg-kumo-elevated text-kumo-default border-kumo-line overflow-hidden rounded-tl-sm border"
                 }`}
               >
                 {isUser ? (
@@ -161,29 +161,29 @@ function MessageBubble({
                       ),
                       p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
                       strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                      ul: ({ children }) => <ul className="list-disc pl-4 mb-2 last:mb-0 space-y-0.5">{children}</ul>,
+                      ul: ({ children }) => <ul className="mb-2 list-disc space-y-0.5 pl-4 last:mb-0">{children}</ul>,
                       ol: ({ children }) => (
-                        <ol className="list-decimal pl-4 mb-2 last:mb-0 space-y-0.5">{children}</ol>
+                        <ol className="mb-2 list-decimal space-y-0.5 pl-4 last:mb-0">{children}</ol>
                       ),
                       li: ({ children }) => <li>{children}</li>,
-                      h1: ({ children }) => <h3 className="font-semibold text-sm mb-1">{children}</h3>,
-                      h2: ({ children }) => <h4 className="font-semibold text-[13px] mb-1">{children}</h4>,
-                      h3: ({ children }) => <h5 className="font-semibold text-[13px] mb-0.5">{children}</h5>,
+                      h1: ({ children }) => <h3 className="mb-1 text-sm font-semibold">{children}</h3>,
+                      h2: ({ children }) => <h4 className="mb-1 text-[13px] font-semibold">{children}</h4>,
+                      h3: ({ children }) => <h5 className="mb-0.5 text-[13px] font-semibold">{children}</h5>,
                       code: ({ children }) => (
-                        <code className="bg-kumo-fill px-1 py-0.5 rounded text-[12px]">{children}</code>
+                        <code className="bg-kumo-fill rounded px-1 py-0.5 text-[12px]">{children}</code>
                       ),
                       table: ({ children }) => (
-                        <div className="overflow-x-auto my-2">
-                          <table className="w-full text-xs border-collapse">{children}</table>
+                        <div className="my-2 overflow-x-auto">
+                          <table className="w-full border-collapse text-xs">{children}</table>
                         </div>
                       ),
                       thead: ({ children }) => (
-                        <thead className="border-b border-kumo-line bg-kumo-fill/30">{children}</thead>
+                        <thead className="border-kumo-line bg-kumo-fill/30 border-b">{children}</thead>
                       ),
                       th: ({ children }) => (
-                        <th className="text-left px-2 py-1 font-semibold text-kumo-strong">{children}</th>
+                        <th className="text-kumo-strong px-2 py-1 text-left font-semibold">{children}</th>
                       ),
-                      td: ({ children }) => <td className="px-2 py-1 border-b border-kumo-line/50">{children}</td>,
+                      td: ({ children }) => <td className="border-kumo-line/50 border-b px-2 py-1">{children}</td>,
                     }}
                   >
                     {part.text}
@@ -256,12 +256,12 @@ function AgentChatConnected({
   ];
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-1.5 border-b border-kumo-line shrink-0">
+      <div className="border-kumo-line flex shrink-0 items-center justify-between border-b px-3 py-1.5">
         <div className="flex items-center gap-2">
           <Badge variant="beta">AI</Badge>
-          <span className="text-xs text-kumo-subtle">Email Agent</span>
+          <span className="text-kumo-subtle text-xs">Email Agent</span>
         </div>
         <div className="flex items-center gap-1">
           {isStreaming && <Loader size="sm" />}
@@ -290,20 +290,20 @@ function AgentChatConnected({
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-4">
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-kumo-brand/10">
+          <div className="flex h-full flex-col items-center justify-center gap-4">
+            <div className="bg-kumo-brand/10 flex h-12 w-12 items-center justify-center rounded-xl">
               <RobotIcon size={24} weight="duotone" className="text-kumo-brand" />
             </div>
-            <p className="text-xs text-kumo-subtle text-center leading-relaxed px-4">
+            <p className="text-kumo-subtle px-4 text-center text-xs leading-relaxed">
               I can read emails, search conversations, and draft replies.
             </p>
-            <div className="flex flex-col gap-1.5 w-full">
+            <div className="flex w-full flex-col gap-1.5">
               {suggestedPrompts.map((prompt) => (
                 <button
                   key={prompt}
                   type="button"
                   onClick={() => sendMessage({ text: prompt })}
-                  className="text-left px-3 py-2 rounded-lg border border-kumo-line text-xs text-kumo-subtle hover:bg-kumo-tint hover:border-kumo-fill-hover transition-colors cursor-pointer bg-transparent"
+                  className="border-kumo-line text-kumo-subtle hover:bg-kumo-tint hover:border-kumo-fill-hover cursor-pointer rounded-lg border bg-transparent px-3 py-2 text-left text-xs transition-colors"
                 >
                   {prompt}
                 </button>
@@ -359,12 +359,12 @@ function AgentChatConnected({
             ))}
             {isStreaming && (
               <div className="flex gap-2">
-                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-kumo-fill text-kumo-default">
+                <div className="bg-kumo-fill text-kumo-default flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
                   <RobotIcon size={12} weight="bold" />
                 </div>
-                <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-kumo-elevated border border-kumo-line rounded-tl-sm">
+                <div className="bg-kumo-elevated border-kumo-line flex items-center gap-1.5 rounded-lg rounded-tl-sm border px-3 py-2">
                   <Loader size="sm" />
-                  <span className="text-xs text-kumo-subtle">Thinking...</span>
+                  <span className="text-kumo-subtle text-xs">Thinking...</span>
                 </div>
               </div>
             )}
@@ -373,7 +373,7 @@ function AgentChatConnected({
       </div>
 
       {/* Input */}
-      <div className="shrink-0 border-t border-kumo-line px-3 py-2">
+      <div className="border-kumo-line shrink-0 border-t px-3 py-2">
         {isStreaming ? (
           <div className="flex justify-center">
             <Button variant="secondary" size="sm" icon={<StopIcon size={14} weight="fill" />} onClick={() => stop()}>
@@ -392,7 +392,7 @@ function AgentChatConnected({
               placeholder="Ask your email agent..."
               rows={1}
               aria-label="Chat message input"
-              className="flex-1 resize-none rounded-lg border border-kumo-line bg-kumo-control px-3 py-2 text-xs text-kumo-default placeholder:text-kumo-subtle focus:outline-none focus:ring-1 focus:ring-kumo-focus min-h-[36px] max-h-[100px]"
+              className="border-kumo-line bg-kumo-control text-kumo-default placeholder:text-kumo-subtle focus:ring-kumo-focus max-h-[100px] min-h-[36px] flex-1 resize-none rounded-lg border px-3 py-2 text-xs focus:ring-1 focus:outline-none"
               style={{ height: "auto", overflow: "hidden" }}
               onInput={(e) => {
                 const t = e.target as HTMLTextAreaElement;
@@ -442,17 +442,17 @@ export default function AgentPanel() {
 
   if (loadError) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-2 px-4 text-center">
-        <span className="text-xs text-kumo-danger">{loadError}</span>
+      <div className="flex h-full flex-col items-center justify-center gap-2 px-4 text-center">
+        <span className="text-kumo-danger text-xs">{loadError}</span>
       </div>
     );
   }
 
   if (!hooks) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-2">
+      <div className="flex h-full flex-col items-center justify-center gap-2">
         <Loader size="base" />
-        <span className="text-xs text-kumo-subtle">Connecting...</span>
+        <span className="text-kumo-subtle text-xs">Connecting...</span>
       </div>
     );
   }

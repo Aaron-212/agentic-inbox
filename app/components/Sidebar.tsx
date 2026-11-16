@@ -56,7 +56,7 @@ function FolderLink({ to, icon, label, unreadCount, onClick }: FolderLinkProps) 
       aria-current={match ? "page" : undefined}
       onClick={onClick}
     >
-      <span className="truncate flex-1">{label}</span>
+      <span className="flex-1 truncate">{label}</span>
       {unreadCount != null && unreadCount > 0 && <Badge variant="secondary">{unreadCount}</Badge>}
     </KumoSidebar.MenuButton>
   );
@@ -123,9 +123,9 @@ export default function Sidebar() {
           icon={<CaretLeftIcon size={16} />}
           aria-label="Back to mailboxes"
         />
-        <div className="flex flex-col flex-1">
-          <div className="text-base font-semibold text-kumo-default truncate">{displayName}</div>
-          <div className="text-sm text-kumo-subtle truncate">{currentMailbox?.email || mailboxId}</div>
+        <div className="flex flex-1 flex-col">
+          <div className="text-kumo-default truncate text-base font-semibold">{displayName}</div>
+          <div className="text-kumo-subtle truncate text-sm">{currentMailbox?.email || mailboxId}</div>
         </div>
         <KumoSidebar.Close className="md:hidden" />
       </KumoSidebar.Header>
@@ -195,7 +195,7 @@ export default function Sidebar() {
       {/* Create folder dialog */}
       <Dialog.Root open={isCreateFolderOpen} onOpenChange={setIsCreateFolderOpen}>
         <Dialog size="sm" className="p-6">
-          <Dialog.Title className="text-base font-semibold mb-4">Create folder</Dialog.Title>
+          <Dialog.Title className="mb-4 text-base font-semibold">Create folder</Dialog.Title>
           <form onSubmit={handleCreateFolder} className="space-y-4">
             <Input
               label="Folder name"

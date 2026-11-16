@@ -21,7 +21,7 @@ export default function FloatingComposer() {
         ))}
       </div>
       <div
-        className={`pointer-events-auto absolute bottom-0 inset-x-0 gap-2 overflow-x-auto px-2 ${hasExpandedComposer ? "hidden" : hasOpenComposer ? "hidden @3xl:flex" : "flex"}`}
+        className={`pointer-events-auto absolute inset-x-0 bottom-0 gap-2 overflow-x-auto px-2 ${hasExpandedComposer ? "hidden" : hasOpenComposer ? "hidden @3xl:flex" : "flex"}`}
       >
         {sessions
           .filter((session) => session.minimized)
@@ -30,11 +30,11 @@ export default function FloatingComposer() {
               key={session.id}
               type="button"
               onClick={() => restore(session.id)}
-              className="max-w-64 shrink-0 first:ml-auto rounded-t-lg border border-kumo-line bg-kumo-base px-4 py-3 text-left shadow-lg hover:bg-kumo-tint"
+              className="border-kumo-line bg-kumo-base hover:bg-kumo-tint max-w-64 shrink-0 rounded-t-lg border px-4 py-3 text-left shadow-lg first:ml-auto"
               aria-label={`Resume ${session.fields?.subject || "new message"} from ${session.mailboxId}`}
             >
               <span className="block truncate text-sm font-medium">{session.fields?.subject || "New message"}</span>
-              <span className="block truncate text-xs text-kumo-subtle">{session.mailboxId}</span>
+              <span className="text-kumo-subtle block truncate text-xs">{session.mailboxId}</span>
             </button>
           ))}
       </div>

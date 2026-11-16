@@ -62,9 +62,9 @@ export default function MailboxRoute() {
       <Sidebar />
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col min-w-0 bg-kumo-base">
+      <div className="bg-kumo-base flex min-w-0 flex-1 flex-col">
         <Header />
-        <main className="@container relative flex-1 min-h-0 overflow-hidden">
+        <main className="@container relative min-h-0 flex-1 overflow-hidden">
           <Outlet />
           <FloatingComposer />
         </main>
@@ -81,7 +81,7 @@ export default function MailboxRoute() {
         defaultWidth={380}
         minWidth={320}
         maxWidth={560}
-        className="hidden lg:flex h-full w-auto shrink-0"
+        className="hidden h-full w-auto shrink-0 lg:flex"
       >
         <KumoSidebar id="agent-sidebar" aria-label="Agent and MCP">
           <AgentSidebar />

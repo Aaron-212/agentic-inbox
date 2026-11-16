@@ -27,7 +27,7 @@ export default function ComposeWindowMenu({ windowState }: { windowState: Compos
       />
       <Popover.Content side="bottom" align="end" className="space-y-3 p-3">
         <Popover.Title className="text-sm font-medium">Window options</Popover.Title>
-        <Popover.Description className="max-w-64 text-xs text-kumo-subtle">
+        <Popover.Description className="text-kumo-subtle max-w-64 text-xs">
           Drag the title to move or any border to resize. Arrow keys move the focused title or resize from the size
           button. Hold Shift for larger steps.
         </Popover.Description>
