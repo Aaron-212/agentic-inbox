@@ -20,6 +20,11 @@ export interface ComposeSize {
   height: number;
 }
 
+export interface ComposePosition {
+  x: number;
+  y: number;
+}
+
 export interface ComposeSession {
   id: string;
   mailboxId: string;
@@ -35,7 +40,8 @@ export interface ComposeSession {
 
 interface ComposeState {
   composerSize: ComposeSize | null;
-  setComposerSize: (size: ComposeSize | null) => void;
+  composerPosition: ComposePosition | null;
+  setComposerLayout: (size: ComposeSize | null, position: ComposePosition | null) => void;
   sessions: ComposeSession[];
   recoveryUnavailable: boolean;
   startCompose: (mailboxId: string, options?: ComposeOptions) => void;
@@ -66,7 +72,8 @@ export const useComposeStore = create<ComposeState>()(
   persist(
     (set) => ({
       composerSize: null,
-      setComposerSize: (composerSize) => set({ composerSize }),
+      composerPosition: null,
+      setComposerLayout: (composerSize, composerPosition) => set({ composerSize, composerPosition }),
       sessions: [],
       recoveryUnavailable: false,
       startCompose: (mailboxId, options = { mode: "new" }) =>
@@ -118,7 +125,7 @@ export const useComposeStore = create<ComposeState>()(
     {
       name: "agentic-inbox-compose",
       storage: recoveryStorage,
-      partialize: ({ sessions, composerSize }) => ({ sessions, composerSize }),
+      partialize: ({ sessions, composerSize, composerPosition }) => ({ sessions, composerSize, composerPosition }),
       skipHydration: true,
       onRehydrateStorage: () => (_state, error) => {
         if (error) useComposeStore.setState({ recoveryUnavailable: true });

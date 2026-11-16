@@ -6,7 +6,7 @@ import { Sidebar as KumoSidebar } from "@cloudflare/kumo";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Outlet, useParams, useSearchParams } from "react-router";
 import AgentSidebar from "~/components/AgentSidebar";
-import DockedComposer from "~/components/DockedComposer";
+import FloatingComposer from "~/components/FloatingComposer";
 import Header from "~/components/Header";
 import Sidebar from "~/components/Sidebar";
 import { useMailbox } from "~/queries/mailboxes";
@@ -66,7 +66,7 @@ export default function MailboxRoute() {
         <Header />
         <main className="@container relative flex-1 min-h-0 overflow-hidden">
           <Outlet />
-          <DockedComposer />
+          <FloatingComposer />
         </main>
       </div>
 

@@ -5,7 +5,7 @@
 import { useComposeStore } from "~/hooks/useComposeStore";
 import ComposePanel from "./ComposePanel";
 
-export default function DockedComposer() {
+export default function FloatingComposer() {
   const sessions = useComposeStore((state) => state.sessions);
   const restore = useComposeStore((state) => state.restore);
 
@@ -15,9 +15,11 @@ export default function DockedComposer() {
 
   return (
     <div className="pointer-events-none absolute inset-0 z-20">
-      {sessions.map((session) => (
-        <ComposePanel key={session.id} session={session} hasMinimized={hasMinimized} />
-      ))}
+      <div className={`absolute inset-0 ${hasMinimized && !hasExpandedComposer ? "@3xl:bottom-16" : ""}`}>
+        {sessions.map((session) => (
+          <ComposePanel key={session.id} session={session} />
+        ))}
+      </div>
       <div
         className={`pointer-events-auto absolute bottom-0 inset-x-0 gap-2 overflow-x-auto px-2 ${hasExpandedComposer ? "hidden" : hasOpenComposer ? "hidden @3xl:flex" : "flex"}`}
       >
