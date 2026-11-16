@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Cloudflare, Inc.
-// Licensed under the Apache 2.0 license found in the LICENSE file or at:
-//     https://opensource.org/licenses/Apache-2.0
+// SPDX-License-Identifier: Apache-2.0
+// Modified by Aaron Ruan.
 
 import { Button, Empty, LinkProvider, Loader, Toasty, TooltipProvider } from "@cloudflare/kumo";
 import { WarningIcon } from "@phosphor-icons/react";
