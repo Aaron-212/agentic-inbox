@@ -4,7 +4,7 @@
 
 import { Badge, Button, Loader, Pagination, Tooltip } from "@cloudflare/kumo";
 import { ArrowLeftIcon, MagnifyingGlassIcon } from "@phosphor-icons/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router";
 import MailboxSplitView from "~/components/MailboxSplitView";
 import { formatListDate, getSnippetText } from "~/lib/utils";
@@ -45,27 +45,28 @@ function highlightTerms(text: string, query: string): React.ReactNode {
 export default function SearchResultsRoute() {
   const { mailboxId } = useParams<{ mailboxId: string }>();
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const { selectedEmailId, selectEmail, closePanel } = useUIStore();
-  const updateEmail = useUpdateEmail();
   const urlQuery = searchParams.get("q") || "";
-  const [page, setPage] = useState(1);
-  const searchKey = useMemo(() => `${mailboxId ?? ""}::${urlQuery}`, [mailboxId, urlQuery]);
-  const prevSearchKeyRef = useRef(searchKey);
-  const searchChanged = prevSearchKeyRef.current !== searchKey;
-  const currentPage = searchChanged ? 1 : page;
+  const searchKey = JSON.stringify([mailboxId, urlQuery]);
+  const closePanel = useUIStore((state) => state.closePanel);
+  const previousSearchKey = useRef(searchKey);
 
   useEffect(() => {
-    if (!searchChanged) {
-      return;
+    if (previousSearchKey.current !== searchKey) {
+      previousSearchKey.current = searchKey;
+      closePanel();
     }
+  }, [closePanel, searchKey]);
 
-    prevSearchKeyRef.current = searchKey;
-    setPage(1);
-    closePanel();
-  }, [closePanel, searchChanged, searchKey]);
+  return <SearchResults key={searchKey} mailboxId={mailboxId} urlQuery={urlQuery} />;
+}
 
-  const { data: searchData, isLoading } = useSearchEmails(mailboxId, urlQuery, currentPage);
+function SearchResults({ mailboxId, urlQuery }: { mailboxId: string | undefined; urlQuery: string }) {
+  const navigate = useNavigate();
+  const { selectedEmailId, selectEmail } = useUIStore();
+  const updateEmail = useUpdateEmail();
+  const [page, setPage] = useState(1);
+
+  const { data: searchData, isLoading } = useSearchEmails(mailboxId, urlQuery, page);
   const results = searchData?.results ?? [];
   const totalCount = searchData?.totalCount ?? 0;
   const isPanelOpen = selectedEmailId !== null;
@@ -191,7 +192,7 @@ export default function SearchResultsRoute() {
         </div>
         {totalCount > SEARCH_PAGE_SIZE && (
           <div className="border-kumo-line flex shrink-0 justify-center border-t py-3">
-            <Pagination page={currentPage} setPage={setPage} perPage={SEARCH_PAGE_SIZE} totalCount={totalCount}>
+            <Pagination page={page} setPage={setPage} perPage={SEARCH_PAGE_SIZE} totalCount={totalCount}>
               <div className="grow" aria-live="polite" aria-atomic="true">
                 <Pagination.Info />
               </div>

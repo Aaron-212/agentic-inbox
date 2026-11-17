@@ -12,7 +12,7 @@
 import { generateText } from "ai";
 import { createAI } from "agents/models/ai-sdk";
 import { DEFAULT_AI_MODELS } from "shared/ai-model";
-import { escapeHtml, stripHtmlToText, textToHtml } from "./email-helpers";
+import { stripHtmlToText, textToHtml } from "./email-helpers";
 
 // ── Prompt Injection Scanner ───────────────────────────────────────
 

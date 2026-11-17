@@ -48,7 +48,6 @@ interface EmailPanelToolbarProps {
 
 export default function EmailPanelToolbar({
   email,
-  mailboxId,
   isDraftFolder,
   isSending,
   moveToFolders,

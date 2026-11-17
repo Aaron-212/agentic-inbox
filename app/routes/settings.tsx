@@ -4,7 +4,7 @@
 
 import { Badge, Button, Checkbox, Input, InputArea, Link, Loader, useKumoToastManager } from "@cloudflare/kumo";
 import { RobotIcon, ArrowCounterClockwiseIcon } from "@phosphor-icons/react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams } from "react-router";
 import { getAIFeatures, type AIFeatures } from "shared/ai-features";
 import { useMailbox, useUpdateMailbox } from "~/queries/mailboxes";
@@ -19,15 +19,17 @@ export default function SettingsRoute() {
   const { data: mailbox } = useMailbox(mailboxId);
   const updateMailboxMutation = useUpdateMailbox();
 
-  const [displayName, setDisplayName] = useState("");
-  const [forwardingEnabled, setForwardingEnabled] = useState(false);
-  const [forwardingEmail, setForwardingEmail] = useState("");
-  const [aiFeatures, setAIFeatures] = useState(getAIFeatures);
-  const [aiModel, setAIModel] = useState("");
-  const [agentPrompt, setAgentPrompt] = useState("");
+  const [displayName, setDisplayName] = useState(mailbox?.settings?.fromName || mailbox?.name || "");
+  const [forwardingEnabled, setForwardingEnabled] = useState(mailbox?.settings?.forwarding?.enabled ?? false);
+  const [forwardingEmail, setForwardingEmail] = useState(mailbox?.settings?.forwarding?.email || "");
+  const [aiFeatures, setAIFeatures] = useState(() => getAIFeatures(mailbox?.settings));
+  const [aiModel, setAIModel] = useState(mailbox?.settings?.aiModel || "");
+  const [agentPrompt, setAgentPrompt] = useState(mailbox?.settings?.agentSystemPrompt || "");
   const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
+  const [previousMailbox, setPreviousMailbox] = useState(mailbox);
+  if (mailbox !== previousMailbox) {
+    setPreviousMailbox(mailbox);
     if (mailbox) {
       setDisplayName(mailbox.settings?.fromName || mailbox.name || "");
       setAgentPrompt(mailbox.settings?.agentSystemPrompt || "");
@@ -36,7 +38,7 @@ export default function SettingsRoute() {
       setForwardingEnabled(mailbox.settings?.forwarding?.enabled ?? false);
       setForwardingEmail(mailbox.settings?.forwarding?.email || "");
     }
-  }, [mailbox]);
+  }
 
   const handleSave = async () => {
     if (!mailbox || !mailboxId) return;

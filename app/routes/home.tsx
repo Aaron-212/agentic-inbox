@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
-import { Button, Dialog, Empty, Input, LayerDialog, Loader, Select, Text, useKumoToastManager } from "@cloudflare/kumo";
+import { Button, Dialog, Input, LayerDialog, Loader, Select, Text, useKumoToastManager } from "@cloudflare/kumo";
 import { EnvelopeIcon, PlusIcon, TrashIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 import { type FormEvent, useEffect, useRef, useState } from "react";
@@ -10,6 +10,8 @@ import { Link as RouterLink } from "react-router";
 import api from "~/services/api";
 import { useCreateMailbox, useDeleteMailbox, useMailboxes } from "~/queries/mailboxes";
 import { queryKeys } from "~/queries/keys";
+
+const EMPTY_ADDRESSES: string[] = [];
 
 export function meta() {
   return [{ title: "Agentic Inbox" }];
@@ -27,12 +29,13 @@ export default function HomeRoute() {
     staleTime: Infinity, // config rarely changes
   });
 
-  const domains = configData?.domains ?? [];
-  const emailAddresses = configData?.emailAddresses ?? [];
+  const domains = configData?.domains ?? EMPTY_ADDRESSES;
+  const emailAddresses = configData?.emailAddresses ?? EMPTY_ADDRESSES;
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newPrefix, setNewPrefix] = useState("");
-  const [selectedDomain, setSelectedDomain] = useState("");
+  const [domainSelection, setSelectedDomain] = useState("");
+  const selectedDomain = domainSelection || domains[0] || "";
   const [newName, setNewName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
@@ -42,13 +45,6 @@ export default function HomeRoute() {
     email: string;
   } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  // Set default domain when config loads
-  useEffect(() => {
-    if (domains.length > 0 && !selectedDomain) {
-      setSelectedDomain(domains[0]);
-    }
-  }, [domains, selectedDomain]);
 
   // Auto-create mailboxes from config (run once when both data sources are ready)
   const autoCreateDone = useRef(false);
@@ -74,7 +70,7 @@ export default function HomeRoute() {
     return () => {
       cancelled = true;
     };
-  }, [emailAddresses, mailboxes, refetchMailboxes]);
+  }, [emailAddresses, mailboxes, mailboxesFetched, refetchMailboxes]);
 
   const handleCreate = async (e: FormEvent) => {
     e.preventDefault();

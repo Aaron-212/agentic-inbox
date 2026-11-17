@@ -4,7 +4,7 @@
 
 import { Button, Input, Sidebar as KumoSidebar, Tooltip, useSidebar } from "@cloudflare/kumo";
 import { GearSixIcon, ListIcon, MagnifyingGlassIcon, PlugsIcon, RobotIcon, XIcon } from "@phosphor-icons/react";
-import { type KeyboardEvent, useEffect, useState } from "react";
+import { type KeyboardEvent, useState } from "react";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router";
 import { getAIFeatures } from "shared/ai-features";
 import { useMailbox } from "~/queries/mailboxes";
@@ -26,11 +26,13 @@ export default function Header() {
 
   // Sync search input with URL query param so it stays populated
   const urlQuery = searchParams.get("q") || "";
-  useEffect(() => {
+  const [previousSearch, setPreviousSearch] = useState<{ pathname: string; query: string } | null>(null);
+  if (previousSearch?.pathname !== location.pathname || previousSearch?.query !== urlQuery) {
+    setPreviousSearch({ pathname: location.pathname, query: urlQuery });
     if (location.pathname.includes("/search") && urlQuery) {
       setSearchQuery(urlQuery);
     }
-  }, [urlQuery, location.pathname]);
+  }
 
   const performSearch = () => {
     if (mailboxId && searchQuery.trim()) {

@@ -422,6 +422,7 @@ app.get("/api/v1/mailboxes/:mailboxId/emails/:emailId/attachments/:attachmentId"
   if (!obj) return c.json({ error: "Attachment file not found" }, 404);
   const headers = new Headers();
   headers.set("Content-Type", attachment.mimetype);
+  // oxlint-disable-next-line no-control-regex -- Strip control characters from attachment filenames.
   const sanitized = attachment.filename.replace(/[\x00-\x1f"\\]/g, "_");
   headers.set(
     "Content-Disposition",
@@ -519,7 +520,8 @@ async function receiveEmail(event: ForwardableEmailMessage, env: Env, ctx: Execu
   if (parsedEmail.attachments) {
     for (const att of parsedEmail.attachments) {
       const attId = crypto.randomUUID();
-      const filename = (att.filename || "untitled").replace(/[\/\\:*?"<>|\x00-\x1f]/g, "_");
+      // oxlint-disable-next-line no-control-regex -- Strip control characters from attachment filenames.
+      const filename = (att.filename || "untitled").replace(/[/\\:*?"<>|\x00-\x1f]/g, "_");
       await env.BUCKET.put(`attachments/${messageId}/${attId}/${filename}`, att.content);
       attachmentData.push({
         id: attId,

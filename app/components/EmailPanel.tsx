@@ -4,7 +4,7 @@
 
 import { getAIFeatures } from "shared/ai-features";
 import { useKumoToastManager } from "@cloudflare/kumo";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams } from "react-router";
 import { Folders, getEmailDeleteConfirmation } from "shared/folders";
 import EmailPanelDialogs from "~/components/email-panel/EmailPanelDialogs";
@@ -91,9 +91,11 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
   // Reset expanded state only when the selected email changes, not on every refetch.
   // Using allMessages as a dependency would reset user expand/collapse state on background refetches.
   const currentEmailId = email?.id;
-  useEffect(() => {
-    if (allMessages.length > 1) setExpandedMessages(new Set([allMessages[0].id]));
-  }, [currentEmailId]); // eslint-disable-line react-hooks/exhaustive-deps
+  const [previousEmailId, setPreviousEmailId] = useState<string | undefined>();
+  if (currentEmailId !== previousEmailId) {
+    setPreviousEmailId(currentEmailId);
+    setExpandedMessages(new Set(allMessages.length > 1 ? [allMessages[0].id] : []));
+  }
 
   const toggleExpand = (msgId: string) => {
     setExpandedMessages((prev) => {
