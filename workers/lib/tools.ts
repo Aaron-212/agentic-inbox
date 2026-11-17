@@ -345,11 +345,11 @@ export async function toolDiscardDraft(env: Env, mailboxId: string, draftId: str
 
 export async function toolDeleteEmail(env: Env, mailboxId: string, emailId: string) {
   const stub = getMailboxStub(env, mailboxId);
-  const result = await stub.deleteEmail(emailId);
+  const result = await stub.trashOrDeleteEmail(emailId);
   if (result === null) {
     return { error: "Email not found", emailId };
   }
-  return { status: "deleted", emailId };
+  return { status: result.status, emailId: result.emailId };
 }
 
 // ── send_reply ─────────────────────────────────────────────────────

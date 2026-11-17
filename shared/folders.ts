@@ -60,3 +60,15 @@ export const MOVE_FOLDER_TOOL_DESCRIPTION = "Target folder: inbox, sent, draft, 
 export function getFolderDisplayName(folderId: string): string {
   return FOLDER_DISPLAY_NAMES[folderId.toLowerCase()] || folderId.charAt(0).toUpperCase() + folderId.slice(1);
 }
+
+export function getEmailDeleteLabel(folderId: string | null | undefined): string {
+  if (folderId === Folders.DRAFT) return "Discard draft";
+  return folderId === Folders.TRASH ? "Delete permanently" : "Move to Trash";
+}
+
+export function getEmailDeleteConfirmation(folderId: string | null | undefined): string {
+  if (folderId === Folders.DRAFT) return "Discard this draft?";
+  return folderId === Folders.TRASH
+    ? "Permanently delete this email? This cannot be undone."
+    : "Move this email to Trash? It will be permanently deleted during daily cleanup after at least one day.";
+}

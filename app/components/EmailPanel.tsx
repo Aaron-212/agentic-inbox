@@ -6,7 +6,7 @@ import { getAIFeatures } from "shared/ai-features";
 import { useKumoToastManager } from "@cloudflare/kumo";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router";
-import { Folders } from "shared/folders";
+import { Folders, getEmailDeleteConfirmation } from "shared/folders";
 import EmailPanelDialogs from "~/components/email-panel/EmailPanelDialogs";
 import EmailPanelHeader from "~/components/email-panel/EmailPanelHeader";
 import EmailPanelToolbar from "~/components/email-panel/EmailPanelToolbar";
@@ -155,7 +155,7 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
         toastManager.add({ title: "Discard this draft from its open composer." });
         return;
       }
-      if (!window.confirm("Are you sure you want to delete this email?")) return;
+      if (!window.confirm(getEmailDeleteConfirmation(email.folder_id))) return;
       deleteEmailMut.mutate({ mailboxId, id: email.id });
       closePanel();
     }

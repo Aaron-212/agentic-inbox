@@ -9,6 +9,7 @@ import { createRequestHandler, RouterContextProvider } from "react-router";
 import { app as apiApp, receiveEmail } from "./index";
 import { EmailMCP } from "./mcp";
 import type { Env } from "./types";
+import { cleanupMailboxes } from "./lib/retention";
 import { isMailboxAIFeatureEnabled } from "./lib/ai-settings";
 
 export { MailboxDO } from "./durableObject";
@@ -100,6 +101,9 @@ app.all("*", (c) => {
 // Export the Hono app as the default export with an email handler
 export default {
   fetch: app.fetch,
+  async scheduled(controller: ScheduledController, env: Env) {
+    await cleanupMailboxes(env, controller.scheduledTime);
+  },
   async email(event: ForwardableEmailMessage, env: Env) {
     try {
       await receiveEmail(event, env);

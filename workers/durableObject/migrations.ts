@@ -161,4 +161,14 @@ export const mailboxMigrations: Migration[] = [
     name: "9_add_compose_mode",
     sql: `ALTER TABLE emails ADD COLUMN compose_mode TEXT;`,
   },
+  {
+    name: "10_add_email_retention",
+    sql: `
+      ALTER TABLE emails ADD COLUMN folder_entered_at INTEGER;
+      UPDATE emails SET folder_entered_at = CAST(strftime('%s', 'now') AS INTEGER) * 1000
+        WHERE folder_id IN ('trash', 'spam');
+      CREATE INDEX idx_emails_folder_entered_at ON emails(folder_id, folder_entered_at);
+      CREATE TABLE pending_attachment_deletions (key TEXT PRIMARY KEY);
+    `,
+  },
 ];

@@ -20,7 +20,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useParams, useSearchParams } from "react-router";
-import { Folders } from "shared/folders";
+import { Folders, getEmailDeleteLabel, getEmailDeleteConfirmation } from "shared/folders";
 import { formatListDate } from "shared/dates";
 import MailboxSplitView from "~/components/MailboxSplitView";
 import { getSnippetText } from "~/lib/utils";
@@ -68,12 +68,13 @@ const FOLDER_EMPTY_STATES: Record<
   [Folders.SPAM]: {
     icon: <ShieldWarningIcon size={48} weight="thin" className="text-kumo-subtle" />,
     title: "No spam",
-    description: "Emails identified as spam appear here. You can move legitimate messages back to Inbox.",
+    description: "Spam is automatically deleted during daily cleanup after at least 7 days.",
   },
   [Folders.TRASH]: {
     icon: <TrashIcon size={48} weight="thin" className="text-kumo-subtle" />,
     title: "Trash is empty",
-    description: "Deleted emails will appear here. You can restore them or permanently delete them.",
+    description:
+      "Emails are automatically deleted during daily cleanup after at least one day. You can restore them before then.",
   },
 };
 
@@ -190,7 +191,8 @@ export default function EmailListRoute() {
       });
   };
 
-  const handleDelete = (e: React.MouseEvent, emailId: string) => {
+  const handleDelete = (e: React.MouseEvent, email: Email) => {
+    const emailId = email.id;
     e.preventDefault();
     e.stopPropagation();
     if (mailboxId) {
@@ -202,7 +204,7 @@ export default function EmailListRoute() {
         toastManager.add({ title: "Discard this draft from its open composer." });
         return;
       }
-      const confirmed = window.confirm("Are you sure you want to delete this email?");
+      const confirmed = window.confirm(getEmailDeleteConfirmation(email.folder_id));
       if (!confirmed) return;
       deleteEmail.mutate({ mailboxId, id: emailId });
       if (selectedEmailId === emailId) closePanel();
@@ -388,15 +390,15 @@ export default function EmailListRoute() {
                       }
                     />
                     <Tooltip
-                      content="Delete"
+                      content={getEmailDeleteLabel(email.folder_id)}
                       render={
                         <Button
                           variant="ghost"
                           shape="square"
                           size="sm"
                           icon={<TrashIcon size={14} />}
-                          onClick={(e) => handleDelete(e, email.id)}
-                          aria-label="Delete"
+                          onClick={(e) => handleDelete(e, email)}
+                          aria-label={getEmailDeleteLabel(email.folder_id)}
                         />
                       }
                     />

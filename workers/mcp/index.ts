@@ -263,7 +263,7 @@ export class EmailMCP extends McpAgent<Env> {
     // ── delete_email ───────────────────────────────────────────
     this.server.tool(
       "delete_email",
-      "Permanently delete an email by ID.",
+      "Move an email to Trash. Emails already in Trash and drafts are permanently deleted. Trash is cleaned daily after at least one day.",
       {
         mailboxId: z.string().describe("The mailbox email address"),
         emailId: z.string().describe("The email ID to delete"),

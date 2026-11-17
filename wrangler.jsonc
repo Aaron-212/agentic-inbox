@@ -5,6 +5,10 @@
   "main": "./workers/app.ts",
   "workers_dev": false,
   "preview_urls": false,
+  "triggers": {
+    // Daily at 03:00 China time (UTC+8).
+    "crons": ["0 19 * * *"],
+  },
   "observability": {
     "enabled": true,
     "logs": {

@@ -493,23 +493,79 @@ export class MailboxDO extends DurableObject<Env> {
     return { threadId, markedRead: true };
   }
 
-  async deleteEmail(id: string) {
-    const email = this.db.select({ id: schema.emails.id }).from(schema.emails).where(eq(schema.emails.id, id)).get();
-
+  async trashOrDeleteEmail(id: string) {
+    const email = this.db.select().from(schema.emails).where(eq(schema.emails.id, id)).get();
     if (!email) return null;
+    if (email.folder_id === Folders.TRASH || email.folder_id === Folders.DRAFT) {
+      await this.deleteEmail(id);
+      return { status: "deleted" as const, emailId: id };
+    }
+    await this.moveEmail(id, Folders.TRASH);
+    return { status: "trashed" as const, emailId: id };
+  }
 
-    const emailAttachments = this.db
-      .select({
-        id: schema.attachments.id,
-        filename: schema.attachments.filename,
-      })
+  // Keep attachment keys durably until R2 deletion succeeds, including across failed cleanup runs.
+  #queueEmailDeletion(id: string) {
+    const attachments = this.db
+      .select({ id: schema.attachments.id, filename: schema.attachments.filename })
       .from(schema.attachments)
       .where(eq(schema.attachments.email_id, id))
       .all();
-
+    for (const attachment of attachments) {
+      this.ctx.storage.sql.exec(
+        "INSERT OR IGNORE INTO pending_attachment_deletions (key) VALUES (?)",
+        `attachments/${id}/${attachment.id}/${attachment.filename}`,
+      );
+    }
+    this.db.delete(schema.attachments).where(eq(schema.attachments.email_id, id)).run();
     this.db.delete(schema.emails).where(eq(schema.emails.id, id)).run();
+    return attachments;
+  }
 
-    return emailAttachments;
+  async #deletePendingAttachments() {
+    while (true) {
+      const pending = this.ctx.storage.sql
+        .exec<{ key: string }>("SELECT key FROM pending_attachment_deletions LIMIT 1000")
+        .toArray();
+      if (pending.length === 0) return;
+      await this.env.BUCKET.delete(pending.map(({ key }) => key));
+      this.ctx.storage.transactionSync(() => {
+        for (const { key } of pending) {
+          this.ctx.storage.sql.exec("DELETE FROM pending_attachment_deletions WHERE key = ?", key);
+        }
+      });
+    }
+  }
+
+  async deleteEmail(id: string) {
+    const email = this.db.select({ id: schema.emails.id }).from(schema.emails).where(eq(schema.emails.id, id)).get();
+    if (!email) return null;
+    const attachments = this.ctx.storage.transactionSync(() => this.#queueEmailDeletion(id));
+    await this.#deletePendingAttachments();
+    return attachments;
+  }
+
+  async cleanupExpiredEmails(now: number) {
+    const day = 24 * 60 * 60 * 1000;
+    // Selection and deletion are synchronous, so a concurrent restore cannot race the expiry check.
+    const expired = this.ctx.storage.transactionSync(() => {
+      const rows = this.ctx.storage.sql
+        .exec<{ id: string }>(
+          `SELECT id FROM emails
+         WHERE (folder_id = ? AND folder_entered_at <= ?)
+            OR (folder_id = ? AND folder_entered_at <= ?)
+         LIMIT 100`,
+          Folders.TRASH,
+          now - day,
+          Folders.SPAM,
+          now - 7 * day,
+        )
+        .toArray();
+      for (const { id } of rows) this.#queueEmailDeletion(id);
+      return rows.length;
+    });
+    await this.#deletePendingAttachments();
+    return { deleted: expired, hasMore: expired === 100 };
   }
 
   async getAttachment(id: string) {
@@ -585,7 +641,17 @@ export class MailboxDO extends DurableObject<Env> {
 
     if (!folder) return false;
 
-    this.db.update(schema.emails).set({ folder_id: folderId }).where(eq(schema.emails.id, id)).run();
+    const email = this.db.select().from(schema.emails).where(eq(schema.emails.id, id)).get();
+    if (!email) return false;
+    if (email.folder_id === folderId) return true;
+    this.db
+      .update(schema.emails)
+      .set({
+        folder_id: folderId,
+        folder_entered_at: folderId === Folders.TRASH || folderId === Folders.SPAM ? Date.now() : null,
+      })
+      .where(eq(schema.emails.id, id))
+      .run();
 
     return true;
   }
@@ -836,6 +902,7 @@ export class MailboxDO extends DurableObject<Env> {
       .values({
         id: email.id,
         folder_id: folderId,
+        folder_entered_at: folderId === Folders.TRASH || folderId === Folders.SPAM ? Date.now() : null,
         subject: email.subject,
         sender: email.sender,
         recipient: email.recipient,

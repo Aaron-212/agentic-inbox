@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
+import { getEmailDeleteLabel } from "shared/folders";
 import { Button, Tooltip } from "@cloudflare/kumo";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -223,7 +224,7 @@ export default function EmailPanelToolbar({
           }
         />
         <Tooltip
-          content="Delete"
+          content={getEmailDeleteLabel(email.folder_id)}
           side="bottom"
           render={
             <Button
@@ -232,7 +233,7 @@ export default function EmailPanelToolbar({
               size="sm"
               icon={<TrashIcon size={18} />}
               onClick={onDelete}
-              aria-label="Delete"
+              aria-label={getEmailDeleteLabel(email.folder_id)}
             />
           }
         />

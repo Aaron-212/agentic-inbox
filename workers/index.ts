@@ -337,10 +337,8 @@ app.put("/api/v1/mailboxes/:mailboxId/emails/:id", async (c: AppContext) => {
 
 app.delete("/api/v1/mailboxes/:mailboxId/emails/:id", async (c: AppContext) => {
   const id = c.req.param("id")!;
-  const attachments = await c.var.mailboxStub.deleteEmail(id);
-  if (attachments === null) return c.json({ error: "Not found" }, 404);
-  if (attachments.length > 0)
-    await c.env.BUCKET.delete(attachments.map((att: any) => `attachments/${id}/${att.id}/${att.filename}`));
+  const result = await c.var.mailboxStub.trashOrDeleteEmail(id);
+  if (result === null) return c.json({ error: "Not found" }, 404);
   return c.body(null, 204);
 });
 
