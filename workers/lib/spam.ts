@@ -97,6 +97,7 @@ export async function isSpamEmail(
   };
   let stage = "input_preparation";
   let response: unknown;
+  let responseTransport: { kind: string; status?: number; contentType?: string | null } | undefined;
   let gatewayLogId: string | null = null;
   let inferenceDurationMs: number | undefined;
 
@@ -154,13 +155,34 @@ export async function isSpamEmail(
           id: SPAM_GATEWAY,
           metadata: { emailId: context.emailId, classificationId: logContext.classificationId, feature: "spam" },
         },
+        // Decode explicitly: the binding otherwise returns a stream for some Content-Type values.
+        returnRawResponse: true,
         signal: AbortSignal.timeout(SPAM_TIMEOUT_MS),
       },
     );
 
-    stage = "response_validation";
     inferenceDurationMs = Math.round(performance.now() - inferenceStartedAt);
     gatewayLogId = ai.aiGatewayLogId;
+    stage = "response_decoding";
+    if (response instanceof Response) {
+      responseTransport = {
+        kind: "Response",
+        status: response.status,
+        contentType: response.headers.get("content-type"),
+      };
+      if (!response.ok) {
+        await response.body?.cancel();
+        throw new Error(`Jev inference returned HTTP ${response.status}`);
+      }
+      response = await response.json();
+    } else if (response instanceof ReadableStream) {
+      // Also handle a stream if a binding runtime returns one despite the raw-response option.
+      responseTransport = { kind: "ReadableStream" };
+      response = await new Response(response).json();
+    } else {
+      responseTransport = { kind: "parsed_value" };
+    }
+    stage = "response_validation";
     const result = SpamResponseSchema.parse(response);
     const probability = result.answers.is_spam.noul;
     const isSpam = probability >= SPAM_PROBABILITY_THRESHOLD;
@@ -170,6 +192,7 @@ export async function isSpamEmail(
       ...logContext,
       gatewayLogId,
       inferenceDurationMs,
+      responseTransport,
       probability,
       isSpam,
       durationMs: Math.round(performance.now() - startedAt),
@@ -183,6 +206,7 @@ export async function isSpamEmail(
       stage,
       gatewayLogId,
       inferenceDurationMs,
+      responseTransport,
       errorName: error instanceof Error ? error.name : "UnknownError",
       errorMessage: error instanceof Error && !(error instanceof z.ZodError) ? error.message.slice(0, 2000) : undefined,
       errorStack:
@@ -193,7 +217,7 @@ export async function isSpamEmail(
               .slice(0, 8)
           : undefined,
       validationIssues: error instanceof z.ZodError ? z.treeifyError(error) : undefined,
-      responseShape: stage === "response_validation" ? describeSpamResponse(response) : undefined,
+      responseShape: response !== undefined ? describeSpamResponse(response) : undefined,
       durationMs: Math.round(performance.now() - startedAt),
     });
     throw error;
