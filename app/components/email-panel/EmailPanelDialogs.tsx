@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
-import { Button, Dialog } from "@cloudflare/kumo";
+import { Button, Dialog, Table } from "@cloudflare/kumo";
 import { downloadFile } from "~/lib/utils";
 import type { Email } from "~/types";
 
@@ -71,33 +71,47 @@ export default function EmailPanelDialogs({
           if (!open) onCloseSource();
         }}
       >
-        <Dialog size="lg">
-          <Dialog.Title>
-            Email Source Headers
-            {sourceViewEmail && (
-              <span className="text-kumo-subtle ml-2 text-sm font-normal">{sourceViewEmail.subject}</span>
-            )}
-          </Dialog.Title>
+        <Dialog size="xl" className="flex flex-col overflow-hidden">
+          <div className="border-kumo-line shrink-0 border-b px-5 py-4 sm:px-6">
+            <Dialog.Title className="text-base font-semibold">Email source headers</Dialog.Title>
+            <Dialog.Description className="text-kumo-subtle mt-1 text-sm wrap-anywhere">
+              {sourceViewEmail?.subject || "(No subject)"}
+            </Dialog.Description>
+          </div>
           {sourceViewEmail && (
-            <div className="mt-4 max-h-[60vh] overflow-y-auto">
-              <table className="w-full border-collapse text-sm">
-                <tbody>
-                  {sourceHeaders.map((header, idx) => (
-                    <tr key={`${header.key}-${idx}`} className={idx % 2 === 0 ? "bg-kumo-tint/50" : ""}>
-                      <td className="text-kumo-default w-[160px] px-3 py-1.5 align-top font-mono font-semibold whitespace-nowrap">
-                        {header.key}
-                      </td>
-                      <td className="text-kumo-subtle px-3 py-1.5 font-mono break-all">{header.value}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="min-h-0 overflow-y-auto overscroll-contain p-5 sm:p-6">
+              {sourceHeaders.length > 0 && (
+                <div className="border-kumo-line overflow-hidden rounded-lg border">
+                  <Table
+                    layout="fixed"
+                    className="text-sm [&_th]:border-0 [&_th]:bg-transparent [&_th]:text-sm [&_th]:font-medium"
+                  >
+                    <caption className="sr-only">Email source headers</caption>
+                    <colgroup>
+                      <col className="w-1/3 sm:w-1/4" />
+                      <col />
+                    </colgroup>
+                    <Table.Body>
+                      {sourceHeaders.map((header, idx) => (
+                        <Table.Row key={`${header.key}-${idx}`}>
+                          <Table.Head {...{ scope: "row" }} className="text-kumo-subtle wrap-anywhere">
+                            {header.key}
+                          </Table.Head>
+                          <Table.Cell className="font-mono leading-6 wrap-anywhere whitespace-pre-wrap">
+                            {header.value}
+                          </Table.Cell>
+                        </Table.Row>
+                      ))}
+                    </Table.Body>
+                  </Table>
+                </div>
+              )}
               {sourceHeaders.length === 0 && (
                 <p className="text-kumo-subtle py-8 text-center text-sm">No header data available for this email.</p>
               )}
             </div>
           )}
-          <div className="mt-4 flex justify-end">
+          <div className="border-kumo-line flex shrink-0 justify-end border-t px-5 py-3 sm:px-6">
             <Dialog.Close
               render={
                 <Button variant="secondary" size="sm">
