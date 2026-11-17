@@ -475,6 +475,10 @@ async function receiveEmail(event: ForwardableEmailMessage, env: Env) {
   const rawEmail = await streamToArrayBuffer(event.raw, event.rawSize);
   const parsedEmail = await new PostalMime().parse(rawEmail);
 
+  const messageId = crypto.randomUUID();
+  const logContext = { emailId: messageId };
+  console.info({ event: "email.received", ...logContext, sizeBytes: event.rawSize });
+
   const allowedAddresses = ((env.EMAIL_ADDRESSES ?? []) as string[]).map((a) => a.toLowerCase());
   const allRecipients = (parsedEmail.to || []).map((t) => t.address?.toLowerCase()).filter(Boolean) as string[];
   const ccRecipients = (parsedEmail.cc || []).map((e) => e.address?.toLowerCase()).filter(Boolean) as string[];
@@ -483,14 +487,13 @@ async function receiveEmail(event: ForwardableEmailMessage, env: Env) {
   // Use the SMTP recipient so aliases, Cc, and Bcc select the correct mailbox settings.
   const mailboxId = event.to.toLowerCase();
   if (allowedAddresses.length > 0 && !allowedAddresses.includes(mailboxId)) {
-    console.log("Ignoring email: recipient does not match EMAIL_ADDRESSES.");
+    console.info({ event: "email.ignored", ...logContext, reason: "recipient_not_allowed" });
     return;
   }
 
-  const messageId = crypto.randomUUID();
   const mailbox = await env.BUCKET.get(`mailboxes/${mailboxId}.json`);
   if (!mailbox) {
-    console.log(`Ignoring email for ${mailboxId}: mailbox does not exist`);
+    console.info({ event: "email.ignored", ...logContext, reason: "mailbox_not_found" });
     return;
   }
 
@@ -554,33 +557,84 @@ async function receiveEmail(event: ForwardableEmailMessage, env: Env) {
     attachmentData,
   );
 
+  console.info({
+    event: "email.stored",
+    ...logContext,
+    folder: Folders.INBOX,
+    attachmentCount: attachmentData.length,
+  });
+
   // Persist first so classification and forwarding failures cannot lose incoming mail.
+  let postDeliveryStage = "settings";
   try {
     const settings = mailboxSettingsSchema(mailboxId).safeParse(await mailbox.json());
     if (settings.success && getAIFeatures(settings.data).spam) {
+      let stage = "classification";
       try {
-        const spam = await isSpamEmail(env.AI, {
-          sender: parsedEmail.from?.address || "",
-          subject: parsedEmail.subject || "",
-          text: parsedEmail.text,
-          html: parsedEmail.html,
-        });
-        if (spam && (await isMailboxAIFeatureEnabled(env, mailboxId, "spam"))) {
-          if (!(await stub.moveEmail(messageId, Folders.SPAM))) {
-            console.error(`Spam folder missing for ${mailboxId}; message retained in Inbox`);
+        const spam = await isSpamEmail(
+          env.AI,
+          {
+            sender: parsedEmail.from?.address || "",
+            subject: parsedEmail.subject || "",
+            text: parsedEmail.text,
+            html: parsedEmail.html,
+          },
+          logContext,
+        );
+        let folder: string = Folders.INBOX;
+        let reason = "not_spam";
+        if (spam) {
+          stage = "settings_recheck";
+          if (await isMailboxAIFeatureEnabled(env, mailboxId, "spam")) {
+            stage = "move_to_spam";
+            if (await stub.moveEmail(messageId, Folders.SPAM)) {
+              folder = Folders.SPAM;
+              reason = "spam";
+            } else {
+              console.error({ event: "spam.move.failed", ...logContext, reason: "spam_folder_missing" });
+              reason = "spam_folder_missing";
+            }
+          } else {
+            reason = "spam_detection_disabled_before_move";
           }
         }
+        console.info({ event: "spam.disposition", ...logContext, isSpam: spam, folder, reason });
       } catch (error) {
-        console.error(`Spam classification failed for ${mailboxId}; message retained in Inbox:`, error);
+        console.error({
+          event: "spam.processing.failed",
+          ...logContext,
+          stage,
+          errorName: error instanceof Error ? error.name : "UnknownError",
+          folder: Folders.INBOX,
+          localCopyRetained: true,
+        });
       }
+    } else {
+      const details = {
+        event: "spam.classification.skipped",
+        ...logContext,
+        reason: settings.success ? "disabled" : "invalid_mailbox_settings",
+        folder: Folders.INBOX,
+      };
+      if (settings.success) console.info(details);
+      else console.warn(details);
     }
 
     const forwarding = settings.success ? settings.data.forwarding : undefined;
     if (forwarding?.enabled && !event.headers.has("X-Agentic-Inbox-Forwarded")) {
+      postDeliveryStage = "forwarding";
+      console.info({ event: "email.forwarding.started", ...logContext });
       await event.forward(forwarding.email, new Headers({ "X-Agentic-Inbox-Forwarded": mailboxId }));
+      console.info({ event: "email.forwarding.completed", ...logContext });
     }
   } catch (error) {
-    console.error(`Post-delivery processing failed for ${mailboxId}; local copy retained:`, error);
+    console.error({
+      event: "email.post_delivery.failed",
+      ...logContext,
+      stage: postDeliveryStage,
+      errorName: error instanceof Error ? error.name : "UnknownError",
+      localCopyRetained: true,
+    });
   }
 }
 
