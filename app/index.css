@@ -2,6 +2,10 @@
 @import "@cloudflare/kumo/styles/tailwind";
 @import "tailwindcss";
 
+* {
+  text-autospace: normal;
+}
+
 body {
   margin: 0;
 }

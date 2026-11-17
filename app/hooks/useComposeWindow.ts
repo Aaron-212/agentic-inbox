@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
+import { m } from "shared/paraglide/messages.js";
+
 import { type KeyboardEvent, type RefObject, useEffect, useState } from "react";
 import type { Rnd, Props as RndProps } from "react-rnd";
 import { type ComposePosition, type ComposeSize, useComposeStore } from "./useComposeStore";
@@ -49,11 +51,11 @@ export function useComposeWindow(panel: RefObject<Rnd | null>, expanded: boolean
   const resizeBy = (width: number, height: number) => {
     const nextSize = clampSize({ width: size.width + width, height: size.height + height });
     setLayout(nextSize, clampPosition(position, nextSize));
-    setAnnouncement(`Composer resized to ${nextSize.width} by ${nextSize.height} pixels.`);
+    setAnnouncement(m.composer_resized({ width: nextSize.width, height: nextSize.height }));
   };
   const moveBy = (x: number, y: number) => {
     setLayout(size, clampPosition({ x: position.x + x, y: position.y + y }));
-    setAnnouncement("Composer moved.");
+    setAnnouncement(m.composer_moved());
   };
   const onArrowKey = (event: KeyboardEvent<HTMLButtonElement>, resize: boolean) => {
     const step = event.shiftKey ? 64 : 16;
@@ -94,14 +96,14 @@ export function useComposeWindow(panel: RefObject<Rnd | null>, expanded: boolean
     onDragStop: (_event, data) => {
       if (!floating) return;
       setLayout(size, clampPosition(data));
-      setAnnouncement("Composer moved.");
+      setAnnouncement(m.composer_moved());
     },
     onResizeStart: (event) => !("button" in event && event.button !== 0),
     onResizeStop: (_event, _direction, element, _delta, nextPosition) => {
       if (!floating || !element.offsetWidth || !element.offsetHeight) return;
       const nextSize = clampSize({ width: element.offsetWidth, height: element.offsetHeight });
       setLayout(nextSize, clampPosition(nextPosition, nextSize));
-      setAnnouncement(`Composer resized to ${nextSize.width} by ${nextSize.height} pixels.`);
+      setAnnouncement(m.composer_resized({ width: nextSize.width, height: nextSize.height }));
     },
   };
 
@@ -115,11 +117,11 @@ export function useComposeWindow(panel: RefObject<Rnd | null>, expanded: boolean
     onMoveKeyDown: (event: KeyboardEvent<HTMLButtonElement>) => onArrowKey(event, false),
     center: () => {
       setLayout(size, clampPosition(centeredPosition));
-      setAnnouncement("Composer centered.");
+      setAnnouncement(m.composer_centered());
     },
     reset: () => {
       setLayout(null, null);
-      setAnnouncement("Composer position and size reset.");
+      setAnnouncement(m.composer_reset());
     },
   };
 }

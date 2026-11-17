@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
+import LanguageSelect from "~/components/LanguageSelect";
+import { m } from "shared/paraglide/messages.js";
+
 import { Button, Dialog, Input, LayerDialog, Loader, Select, Text, useKumoToastManager } from "@cloudflare/kumo";
 import { EnvelopeIcon, PlusIcon, TrashIcon } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
@@ -76,7 +79,7 @@ export default function HomeRoute() {
     e.preventDefault();
     setCreateError(null);
     if (!newPrefix || !selectedDomain) {
-      setCreateError("Please fill in all fields");
+      setCreateError(m.fill_fields());
       return;
     }
     const email = `${newPrefix}@${selectedDomain}`;
@@ -84,12 +87,12 @@ export default function HomeRoute() {
     setIsCreating(true);
     try {
       await createMailbox.mutateAsync({ email, name });
-      toastManager.add({ title: "Mailbox created successfully!" });
+      toastManager.add({ title: m.mailbox_created() });
       setIsCreateOpen(false);
       setNewPrefix("");
       setNewName("");
     } catch (err: unknown) {
-      const message = (err instanceof Error ? err.message : null) || "Failed to create mailbox";
+      const message = (err instanceof Error ? err.message : null) || m.mailbox_create_failed();
       setCreateError(message);
     } finally {
       setIsCreating(false);
@@ -101,11 +104,11 @@ export default function HomeRoute() {
     setIsDeleting(true);
     try {
       await deleteMailbox.mutateAsync(mailboxToDelete.id);
-      toastManager.add({ title: "Mailbox deleted" });
+      toastManager.add({ title: m.mailbox_deleted() });
       setIsDeleteOpen(false);
       setMailboxToDelete(null);
     } catch {
-      toastManager.add({ title: "Failed to delete mailbox", variant: "error" });
+      toastManager.add({ title: m.mailbox_delete_failed(), variant: "error" });
     } finally {
       setIsDeleting(false);
     }
@@ -127,12 +130,15 @@ export default function HomeRoute() {
       <div className="mx-auto max-w-2xl px-4 py-8 md:px-6 md:py-16">
         <div className="mb-8">
           <div className="flex items-center justify-between">
-            <h1 className="text-kumo-default text-2xl font-bold">Mailboxes</h1>
-            {!isConfigured && (
-              <Button variant="primary" icon={<PlusIcon size={16} />} onClick={() => setIsCreateOpen(true)}>
-                New Mailbox
-              </Button>
-            )}
+            <h1 className="text-kumo-default text-2xl font-bold">{m.mailboxes()}</h1>
+            <div className="flex items-center gap-2">
+              <LanguageSelect />
+              {!isConfigured && (
+                <Button variant="primary" icon={<PlusIcon size={16} />} onClick={() => setIsCreateOpen(true)}>
+                  {m.new_mailbox()}
+                </Button>
+              )}
+            </div>
           </div>
           {domains.length > 0 && <p className="text-kumo-subtle mt-1 text-sm">{domains.join(", ")}</p>}
         </div>
@@ -164,7 +170,7 @@ export default function HomeRoute() {
                     size="sm"
                     shape="square"
                     icon={<TrashIcon size={16} />}
-                    aria-label={`Delete mailbox ${account.email}`}
+                    aria-label={m.delete_mailbox_address({ email: account.email })}
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -185,15 +191,13 @@ export default function HomeRoute() {
               <div className="mb-4">
                 <EnvelopeIcon size={48} weight="thin" className="text-kumo-subtle" />
               </div>
-              <h3 className="text-kumo-default mb-1.5 text-base font-semibold">No mailboxes yet</h3>
+              <h3 className="text-kumo-default mb-1.5 text-base font-semibold">{m.no_mailboxes()}</h3>
               <p className="text-kumo-subtle mb-5 max-w-sm text-sm">
-                {isConfigured
-                  ? "Your email routing is configured but no mailboxes have been created yet. They will appear here automatically."
-                  : "Create a mailbox to start sending and receiving emails with your domain."}
+                {isConfigured ? m.mailboxes_pending() : m.create_mailbox_help()}
               </p>
               {!isConfigured && (
                 <Button variant="primary" icon={<PlusIcon size={16} />} onClick={() => setIsCreateOpen(true)}>
-                  Create Mailbox
+                  {m.create_mailbox()}
                 </Button>
               )}
             </div>
@@ -204,16 +208,16 @@ export default function HomeRoute() {
       {/* Create Dialog */}
       <LayerDialog.Root open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <LayerDialog.Content>
-          <LayerDialog.Title>Create New Mailbox</LayerDialog.Title>
+          <LayerDialog.Title>{m.create_new_mailbox()}</LayerDialog.Title>
           <LayerDialog.Body>
             <form id="create-mailbox-form" onSubmit={handleCreate} className="space-y-4">
               {createError && <Text variant="error">{createError}</Text>}
               <div>
-                <span className="text-kumo-default mb-1.5 block font-medium">Email Address</span>
+                <span className="text-kumo-default mb-1.5 block font-medium">{m.email_address()}</span>
                 <div className="flex items-center gap-2">
                   <div className="flex-1">
                     <Input
-                      aria-label="Address prefix"
+                      aria-label={m.address_prefix()}
                       placeholder="info"
                       value={newPrefix}
                       onChange={(e) => setNewPrefix(e.target.value)}
@@ -226,7 +230,7 @@ export default function HomeRoute() {
                     {domains.length > 1 ? (
                       <div className="flex-1">
                         <Select
-                          aria-label="Domain"
+                          aria-label={m.domain()}
                           value={selectedDomain}
                           onValueChange={(value) => {
                             if (value) setSelectedDomain(value);
@@ -240,27 +244,27 @@ export default function HomeRoute() {
                         </Select>
                       </div>
                     ) : (
-                      <span className="text-kumo-subtle">{selectedDomain || "no domain"}</span>
+                      <span className="text-kumo-subtle">{selectedDomain || m.no_domain()}</span>
                     )}
                   </div>
                 </div>
               </div>
               <Input
-                label="Display Name (optional)"
-                placeholder="Info"
+                label={m.display_name_optional()}
+                placeholder={m.display_name_example()}
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
               />
             </form>
           </LayerDialog.Body>
-          <LayerDialog.Actions dismissLabel="Cancel">
+          <LayerDialog.Actions dismissLabel={m.cancel()}>
             <LayerDialog.Action
               type="submit"
               form="create-mailbox-form"
               loading={isCreating}
               disabled={!selectedDomain}
             >
-              Create
+              {m.create()}
             </LayerDialog.Action>
           </LayerDialog.Actions>
         </LayerDialog.Content>
@@ -275,21 +279,20 @@ export default function HomeRoute() {
         }}
       >
         <Dialog className="p-6">
-          <Dialog.Title className="mb-2 text-base font-semibold">Delete Mailbox</Dialog.Title>
+          <Dialog.Title className="mb-2 text-base font-semibold">{m.delete_mailbox()}</Dialog.Title>
           <Dialog.Description className="text-kumo-subtle mb-5 text-base">
-            Are you sure you want to delete <strong className="text-kumo-default">{mailboxToDelete?.email}</strong>?
-            This action cannot be undone.
+            {m.delete_mailbox_confirm({ email: mailboxToDelete?.email || "" })}
           </Dialog.Description>
           <div className="flex justify-end gap-2">
             <Dialog.Close
               render={(props) => (
                 <Button {...props} variant="secondary">
-                  Cancel
+                  {m.cancel()}
                 </Button>
               )}
             />
             <Button variant="destructive" loading={isDeleting} onClick={handleDelete}>
-              Delete
+              {m.delete()}
             </Button>
           </div>
         </Dialog>

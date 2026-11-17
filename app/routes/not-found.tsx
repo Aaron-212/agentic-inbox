@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
+import { m } from "shared/paraglide/messages.js";
+
 import { Button, Empty } from "@cloudflare/kumo";
 import { WarningIcon } from "@phosphor-icons/react";
 import { useNavigate } from "react-router";
@@ -13,11 +15,11 @@ export default function NotFoundRoute() {
     <div className="flex min-h-screen items-center justify-center">
       <Empty
         icon={<WarningIcon size={48} className="text-kumo-inactive" />}
-        title="404 -- Page Not Found"
-        description="The page you're looking for doesn't exist."
+        title={m.not_found_title()}
+        description={m.page_missing()}
         contents={
           <Button variant="primary" size="sm" onClick={() => navigate("/")}>
-            Go Home
+            {m.go_home()}
           </Button>
         }
       />

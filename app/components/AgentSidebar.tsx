@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
+import { m } from "shared/paraglide/messages.js";
+
 import { Loader } from "@cloudflare/kumo";
 import { PlugsIcon, RobotIcon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
@@ -18,7 +20,7 @@ function LazyAgentPanel() {
       })
       .catch((err) => {
         console.error("Failed to load AgentPanel:", err);
-        setLoadError("Failed to load agent panel");
+        setLoadError(m.agent_load_failed());
       });
   }, []);
 
@@ -33,7 +35,7 @@ function LazyAgentPanel() {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2">
         <Loader size="base" />
-        <span className="text-kumo-subtle text-xs">Loading agent...</span>
+        <span className="text-kumo-subtle text-xs">{m.loading_agent()}</span>
       </div>
     );
   }
@@ -65,7 +67,7 @@ export default function AgentSidebar({
             }`}
           >
             <RobotIcon size={16} weight={activeTab === "agent" ? "fill" : "regular"} />
-            Agent
+            {m.agent()}
           </button>
         )}
         {mcpEnabled && (

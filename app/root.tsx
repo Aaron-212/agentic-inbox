@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
-import { Button, Empty, LinkProvider, Loader, Toasty, TooltipProvider } from "@cloudflare/kumo";
+import { m } from "shared/paraglide/messages.js";
+
+import { Button, Empty, KumoLocaleProvider, LinkProvider, Loader, Toasty, TooltipProvider } from "@cloudflare/kumo";
 import { WarningIcon } from "@phosphor-icons/react";
 import { MutationCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { forwardRef, useEffect, useState } from "react";
@@ -17,6 +19,7 @@ import {
 } from "react-router";
 import { useComposeStore } from "~/hooks/useComposeStore";
 import { ApiError } from "~/services/api";
+import { getLocale } from "shared/paraglide/runtime.js";
 import "./index.css";
 
 // Kumo uses data-mode for its theme tokens. Run before rendering to avoid a light flash.
@@ -80,7 +83,7 @@ const KumoLink = forwardRef<HTMLAnchorElement, React.AnchorHTMLAttributes<HTMLAn
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={getLocale()} suppressHydrationWarning>
       <head>
         <meta charSet="UTF-8" />
         <meta name="color-scheme" content="light dark" />
@@ -93,7 +96,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body className="bg-kumo-recessed text-kumo-default antialiased">
-        {children}
+        <KumoLocaleProvider
+          translations={{
+            label: { optional: m.optional(), tooltip: m.more_information() },
+            layerDialog: { close: m.close(), cancel: m.cancel() },
+          }}
+        >
+          {children}
+        </KumoLocaleProvider>
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -137,17 +147,17 @@ export default function App() {
 }
 
 export function ErrorBoundary({ error }: { error: unknown }) {
-  let title = "Something went wrong";
-  let description = "An unexpected error occurred. Please try again.";
+  let title: string = m.error_title();
+  let description: string = m.error_unexpected();
   let status: number | null = null;
 
   if (isRouteErrorResponse(error)) {
     status = error.status;
     if (error.status === 404) {
-      title = "Page not found";
-      description = "The page you're looking for doesn't exist or has been moved.";
+      title = m.page_not_found();
+      description = m.page_moved();
     } else {
-      title = `Error ${error.status}`;
+      title = m.error_status({ status: error.status });
       description = error.statusText || description;
     }
   } else if (error instanceof Error && import.meta.env.DEV) {
@@ -158,7 +168,7 @@ export function ErrorBoundary({ error }: { error: unknown }) {
     <div className="flex min-h-screen items-center justify-center p-8">
       <Empty
         icon={<WarningIcon size={48} className="text-kumo-inactive" />}
-        title={status === 404 ? "404 — Page not found" : title}
+        title={status === 404 ? m.not_found_title() : title}
         description={description}
         contents={
           <Button
@@ -167,7 +177,7 @@ export function ErrorBoundary({ error }: { error: unknown }) {
               window.location.href = "/";
             }}
           >
-            Go Home
+            {m.go_home()}
           </Button>
         }
       />

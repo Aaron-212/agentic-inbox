@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
+import { m } from "shared/paraglide/messages.js";
+
 import EmailAttachmentList from "~/components/EmailAttachmentList";
 import EmailIframe from "~/components/EmailIframe";
 import { formatDetailDate, rewriteInlineImages } from "~/lib/utils";
@@ -25,7 +27,7 @@ export default function SingleMessageView({ email, mailboxId, onPreviewImage }: 
             </div>
             <div className="min-w-0">
               <div className="text-kumo-default truncate text-sm font-medium">{email.sender}</div>
-              <div className="text-kumo-subtle text-xs">To: {email.recipient}</div>
+              <div className="text-kumo-subtle text-xs">{m.to_address({ email: email.recipient })}</div>
             </div>
           </div>
           <span className="text-kumo-subtle shrink-0 text-xs">{formatDetailDate(email.date)}</span>

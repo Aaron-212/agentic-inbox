@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
-import { getEmailDeleteLabel } from "shared/folders";
+import { m } from "shared/paraglide/messages.js";
+
+import { getEmailDeleteLabel, getFolderDisplayName } from "shared/folders";
 import { Button, Tooltip } from "@cloudflare/kumo";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -74,7 +76,7 @@ export default function EmailPanelToolbar({
         size="sm"
         icon={<ArrowLeftIcon size={18} />}
         onClick={onBack}
-        aria-label="Back to list"
+        aria-label={m.back_list()}
         className="shrink-0 md:hidden"
       />
       <div
@@ -92,16 +94,16 @@ export default function EmailPanelToolbar({
             onClick={onSendDraft}
             loading={isSending}
           >
-            {isSending ? "Sending..." : "Send"}
+            {isSending ? m.sending() : m.send()}
           </Button>
           <Button variant="secondary" size="sm" icon={<PencilSimpleIcon size={16} />} onClick={onEditDraft}>
-            Edit
+            {m.edit()}
           </Button>
         </>
       ) : (
         <>
           <Tooltip
-            content="Reply"
+            content={m.reply()}
             side="bottom"
             render={
               <Button
@@ -110,13 +112,13 @@ export default function EmailPanelToolbar({
                 size="sm"
                 icon={<ArrowBendUpLeftIcon size={18} />}
                 onClick={onReply}
-                aria-label="Reply"
+                aria-label={m.reply()}
               />
             }
           />
           {aiRepliesEnabled && (
             <Tooltip
-              content="Draft reply with AI"
+              content={m.reply_ai()}
               side="bottom"
               render={
                 <Button
@@ -129,7 +131,7 @@ export default function EmailPanelToolbar({
                     if (!isGeneratingAIReply) onDraftAIReply();
                   }}
                   loading={isGeneratingAIReply}
-                  aria-label="Draft reply with AI"
+                  aria-label={m.reply_ai()}
                   aria-disabled={isGeneratingAIReply}
                   aria-busy={isGeneratingAIReply}
                 />
@@ -137,7 +139,7 @@ export default function EmailPanelToolbar({
             />
           )}
           <Tooltip
-            content="Reply All"
+            content={m.reply_all()}
             side="bottom"
             render={
               <Button
@@ -146,12 +148,12 @@ export default function EmailPanelToolbar({
                 size="sm"
                 icon={<ChatCircleIcon size={18} />}
                 onClick={onReplyAll}
-                aria-label="Reply All"
+                aria-label={m.reply_all()}
               />
             }
           />
           <Tooltip
-            content="Forward"
+            content={m.forward()}
             side="bottom"
             render={
               <Button
@@ -160,7 +162,7 @@ export default function EmailPanelToolbar({
                 size="sm"
                 icon={<ArrowBendUpRightIcon size={18} />}
                 onClick={onForward}
-                aria-label="Forward"
+                aria-label={m.forward()}
               />
             }
           />
@@ -170,7 +172,7 @@ export default function EmailPanelToolbar({
       <div className="bg-kumo-fill mx-0.5 h-5 w-px" />
 
       <Tooltip
-        content={email.starred ? "Unstar" : "Star"}
+        content={email.starred ? m.unstar() : m.star()}
         side="bottom"
         render={
           <Button
@@ -185,13 +187,13 @@ export default function EmailPanelToolbar({
               />
             }
             onClick={onToggleStar}
-            aria-label={email.starred ? "Unstar" : "Star"}
+            aria-label={email.starred ? m.unstar() : m.star()}
           />
         }
       />
 
       <Tooltip
-        content={email.read ? "Mark as unread" : "Mark as read"}
+        content={email.read ? m.mark_as_unread() : m.mark_as_read()}
         side="bottom"
         render={
           <Button
@@ -200,7 +202,7 @@ export default function EmailPanelToolbar({
             size="sm"
             icon={email.read ? <EnvelopeSimpleIcon size={18} /> : <EnvelopeOpenIcon size={18} />}
             onClick={onToggleRead}
-            aria-label={email.read ? "Mark as unread" : "Mark as read"}
+            aria-label={email.read ? m.mark_as_unread() : m.mark_as_read()}
           />
         }
       />
@@ -209,7 +211,7 @@ export default function EmailPanelToolbar({
 
       <div className="ml-auto flex items-center gap-0.5">
         <Tooltip
-          content="View source"
+          content={m.view_source()}
           side="bottom"
           render={
             <Button
@@ -218,7 +220,7 @@ export default function EmailPanelToolbar({
               size="sm"
               icon={<CodeIcon size={18} />}
               onClick={onViewSource}
-              aria-label="View source"
+              aria-label={m.view_source()}
             />
           }
         />
@@ -237,7 +239,7 @@ export default function EmailPanelToolbar({
           }
         />
         <Tooltip
-          content="Close"
+          content={m.close()}
           side="bottom"
           render={
             <Button
@@ -246,7 +248,7 @@ export default function EmailPanelToolbar({
               size="sm"
               icon={<XIcon size={18} />}
               onClick={onBack}
-              aria-label="Close"
+              aria-label={m.close()}
               className="hidden md:inline-flex"
             />
           }
@@ -272,7 +274,7 @@ function MoveToFolderMenu({ folders, onMove }: { folders: Folder[]; onMove: (id:
   return (
     <div ref={ref} className="relative">
       <Tooltip
-        content="Move to folder"
+        content={m.move_folder()}
         side="bottom"
         render={
           <Button
@@ -281,13 +283,13 @@ function MoveToFolderMenu({ folders, onMove }: { folders: Folder[]; onMove: (id:
             size="sm"
             icon={<FolderSimpleIcon size={18} />}
             onClick={() => setOpen((o) => !o)}
-            aria-label="Move to folder"
+            aria-label={m.move_folder()}
           />
         }
       />
       {open && (
         <div className="border-kumo-line bg-kumo-elevated absolute top-full left-0 z-50 mt-1 min-w-[160px] rounded-lg border py-1 shadow-lg">
-          <div className="text-kumo-subtle px-3 py-1.5 text-xs font-medium">Move to</div>
+          <div className="text-kumo-subtle px-3 py-1.5 text-xs font-medium">{m.move_to()}</div>
           <div className="bg-kumo-line my-1 h-px" />
           {folders.map((f) => (
             <button
@@ -299,7 +301,7 @@ function MoveToFolderMenu({ folders, onMove }: { folders: Folder[]; onMove: (id:
                 setOpen(false);
               }}
             >
-              {f.name}
+              {getFolderDisplayName(f.id, f.name)}
             </button>
           ))}
         </div>

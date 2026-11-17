@@ -9,6 +9,7 @@
  * Re-export for backwards compatibility with existing imports.
  */
 import DOMPurify from "dompurify";
+import { getLocale } from "shared/paraglide/runtime.js";
 import { formatQuotedDate } from "shared/dates";
 import type { Attachment } from "~/types";
 
@@ -21,12 +22,14 @@ export const formatComposeDate = formatQuotedDate;
  * Format a byte count as a human-readable file size.
  */
 export function formatBytes(bytes: number, decimals = 1): string {
-  if (bytes === 0) return "0 B";
-  const k = 1024;
-  const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ["B", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${Number.parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+  const units = ["byte", "kilobyte", "megabyte", "gigabyte"];
+  const index = bytes > 0 ? Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1) : 0;
+  return new Intl.NumberFormat(getLocale(), {
+    style: "unit",
+    unit: units[index],
+    unitDisplay: "short",
+    maximumFractionDigits: Math.max(0, decimals),
+  }).format(bytes / Math.pow(1024, index));
 }
 
 /**

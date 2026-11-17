@@ -2,16 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
+import { m } from "shared/paraglide/messages.js";
+
 import { Badge, Button, Checkbox, Input, InputArea, Link, Loader, useKumoToastManager } from "@cloudflare/kumo";
 import { RobotIcon, ArrowCounterClockwiseIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { useParams } from "react-router";
 import { getAIFeatures, type AIFeatures } from "shared/ai-features";
 import { useMailbox, useUpdateMailbox } from "~/queries/mailboxes";
-
-// Placeholder shown in the textarea when no custom prompt is set.
-// The authoritative default prompt lives in workers/agent/index.ts (DEFAULT_SYSTEM_PROMPT).
-const PROMPT_PLACEHOLDER = `You are an email assistant that helps manage this inbox. You read emails, draft replies, and help organize conversations.\n\nWrite like a real person. Short, direct, flowing prose. Plain text only.\n\n(Leave empty to use the full built-in default prompt)`;
 
 export default function SettingsRoute() {
   const { mailboxId } = useParams<{ mailboxId: string }>();
@@ -54,10 +52,10 @@ export default function SettingsRoute() {
     };
     try {
       await updateMailboxMutation.mutateAsync({ mailboxId, settings });
-      toastManager.add({ title: "Settings saved!" });
+      toastManager.add({ title: m.settings_saved() });
     } catch (error) {
       toastManager.add({
-        title: error instanceof Error ? error.message : "Failed to save settings",
+        title: error instanceof Error ? error.message : m.settings_save_failed(),
         variant: "error",
       });
     } finally {
@@ -81,7 +79,7 @@ export default function SettingsRoute() {
 
   return (
     <div className="h-full overflow-y-auto px-4 py-4 md:px-8 md:py-6">
-      <h1 className="text-kumo-default mb-6 text-lg font-semibold">Settings</h1>
+      <h1 className="text-kumo-default mb-6 text-lg font-semibold">{m.settings()}</h1>
 
       <form
         className="space-y-6"
@@ -92,18 +90,18 @@ export default function SettingsRoute() {
       >
         {/* Account */}
         <div className="border-kumo-line bg-kumo-base rounded-lg border p-5">
-          <div className="text-kumo-default mb-4 text-sm font-medium">Account</div>
+          <div className="text-kumo-default mb-4 text-sm font-medium">{m.account()}</div>
           <div className="space-y-3">
-            <Input label="Display Name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
-            <Input label="Email" type="email" value={mailbox.email} disabled />
+            <Input label={m.display_name()} value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+            <Input label={m.email()} type="email" value={mailbox.email} disabled />
           </div>
         </div>
 
         <div className="border-kumo-line bg-kumo-base rounded-lg border p-5">
-          <div className="text-kumo-default mb-4 text-sm font-medium">Forwarding</div>
+          <div className="text-kumo-default mb-4 text-sm font-medium">{m.forwarding()}</div>
           <div>
             <Checkbox
-              label="Forward incoming mail"
+              label={m.forward_incoming()}
               name="forwardingEnabled"
               checked={forwardingEnabled}
               onCheckedChange={setForwardingEnabled}
@@ -112,7 +110,7 @@ export default function SettingsRoute() {
           {forwardingEnabled && (
             <div className="mt-3">
               <Input
-                label="Forward to"
+                label={m.forward_to()}
                 name="forwardingEmail"
                 type="email"
                 autoComplete="email"
@@ -126,7 +124,7 @@ export default function SettingsRoute() {
                   setForwardingEmail(event.target.value);
                   event.target.setCustomValidity(
                     event.target.value.trim().toLowerCase() === mailbox.email.toLowerCase()
-                      ? "Enter an address different from this mailbox."
+                      ? m.forward_different()
                       : "",
                   );
                 }}
@@ -136,14 +134,14 @@ export default function SettingsRoute() {
         </div>
 
         <fieldset className="border-kumo-line bg-kumo-base rounded-lg border p-5">
-          <legend className="text-kumo-default px-1 text-sm font-medium">AI features</legend>
+          <legend className="text-kumo-default px-1 text-sm font-medium">{m.ai_features()}</legend>
           {(
             [
-              ["assistant", "AI assistant"],
-              ["replies", "AI reply drafting"],
-              ["spam", "AI spam detection"],
-              ["summaries", "AI summaries for new mail"],
-              ["mcp", "MCP access"],
+              ["assistant", m.ai_assistant()],
+              ["replies", m.ai_replies()],
+              ["spam", m.ai_spam()],
+              ["summaries", m.ai_summaries()],
+              ["mcp", m.mcp_access()],
             ] satisfies [keyof AIFeatures, string][]
           ).map(([feature, label]) => (
             <div key={feature} className="flex min-h-12 items-center">
@@ -157,7 +155,7 @@ export default function SettingsRoute() {
           ))}
           <div className="mt-3">
             <Input
-              label="Workers AI model"
+              label={m.ai_model()}
               name="aiModel"
               value={aiModel}
               onChange={(event) => setAIModel(event.target.value)}
@@ -169,13 +167,10 @@ export default function SettingsRoute() {
               aria-describedby="ai-model-help"
             />
             <p id="ai-model-help" className="text-kumo-subtle mt-2 text-xs">
-              Applies to the assistant, AI replies, summaries, and safety checks. Spam detection always uses Jev. Leave
-              empty to use the built-in models. Choose a text-generation model with function calling for the assistant
-              from the{" "}
+              {m.ai_model_help()}{" "}
               <Link href="https://developers.cloudflare.com/workers-ai/models/" variant="current">
-                Workers AI catalog
+                {m.ai_catalog()}
               </Link>
-              .
             </p>
           </div>
         </fieldset>
@@ -187,9 +182,13 @@ export default function SettingsRoute() {
               <div className="flex items-center gap-2">
                 <RobotIcon size={16} weight="duotone" className="text-kumo-subtle" />
                 <span id="agent-prompt-label" className="text-kumo-default text-sm font-medium">
-                  AI Agent Prompt
+                  {m.agent_prompt()}
                 </span>
-                {isCustomPrompt ? <Badge variant="primary">Custom</Badge> : <Badge variant="secondary">Default</Badge>}
+                {isCustomPrompt ? (
+                  <Badge variant="primary">{m.custom()}</Badge>
+                ) : (
+                  <Badge variant="secondary">{m.default_label()}</Badge>
+                )}
               </div>
               {isCustomPrompt && (
                 <Button
@@ -199,12 +198,12 @@ export default function SettingsRoute() {
                   icon={<ArrowCounterClockwiseIcon size={14} />}
                   onClick={handleResetPrompt}
                 >
-                  Reset to default
+                  {m.reset_default()}
                 </Button>
               )}
             </div>
             <p id="agent-prompt-description" className="text-kumo-subtle mb-3 text-xs">
-              Customize how the AI agent behaves for this mailbox. Leave empty to use the built-in default prompt.
+              {m.prompt_description()}
             </p>
             <InputArea
               name="agentSystemPrompt"
@@ -212,13 +211,12 @@ export default function SettingsRoute() {
               aria-describedby="agent-prompt-description agent-prompt-help"
               value={agentPrompt}
               onChange={(e) => setAgentPrompt(e.target.value)}
-              placeholder={PROMPT_PLACEHOLDER}
+              placeholder={m.prompt_placeholder()}
               rows={12}
               className="w-full resize-none font-mono text-xs leading-relaxed"
             />
             <p id="agent-prompt-help" className="text-kumo-subtle mt-2 text-xs">
-              The prompt is sent as the system message to the AI model. It controls the agent's personality, writing
-              style, and behavior rules.
+              {m.prompt_help()}
             </p>
           </div>
         )}
@@ -226,7 +224,7 @@ export default function SettingsRoute() {
         {/* Save */}
         <div className="flex justify-end">
           <Button type="submit" variant="primary" loading={isSaving} disabled={isSaving}>
-            Save Changes
+            {m.save_changes()}
           </Button>
         </div>
       </form>

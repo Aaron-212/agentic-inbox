@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
+import { m } from "shared/paraglide/messages.js";
+
 import { Button, Dialog } from "@cloudflare/kumo";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -53,7 +55,7 @@ export function useConfirmation() {
         <Dialog.Description className="text-kumo-subtle mb-5 text-sm">{options?.description}</Dialog.Description>
         <div className="flex justify-end gap-2">
           <Button type="button" variant="secondary" onClick={() => finish(false)}>
-            Cancel
+            {m.cancel()}
           </Button>
           <Button type="button" variant="destructive" onClick={() => finish(true)}>
             {options?.confirmLabel}

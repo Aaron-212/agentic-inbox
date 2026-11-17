@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
+import { m } from "shared/paraglide/messages.js";
+
 import { PaperclipIcon, FileIcon, ImageIcon } from "@phosphor-icons/react";
 import { formatBytes, getAttachmentUrl, getNonInlineAttachments } from "~/lib/utils";
 import type { Attachment } from "~/types";
@@ -33,9 +35,7 @@ export default function EmailAttachmentList({
       {showHeading && (
         <div className="mb-2 flex items-center gap-2">
           <PaperclipIcon size={14} className="text-kumo-subtle" />
-          <span className="text-kumo-default text-sm font-medium">
-            {files.length} attachment{files.length !== 1 ? "s" : ""}
-          </span>
+          <span className="text-kumo-default text-sm font-medium">{m.attachments_count({ count: files.length })}</span>
         </div>
       )}
       <div className="flex flex-wrap gap-2">

@@ -2,10 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
-import { Badge, Button, Loader, Pagination, Tooltip } from "@cloudflare/kumo";
+import { getFolderDisplayName } from "shared/folders";
+import { m } from "shared/paraglide/messages.js";
+
+import { Badge, Button, Loader, Tooltip } from "@cloudflare/kumo";
 import { ArrowLeftIcon, MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router";
+import MailPagination from "~/components/MailPagination";
 import MailboxSplitView from "~/components/MailboxSplitView";
 import { formatListDate, getSnippetText } from "~/lib/utils";
 import { useUpdateEmail } from "~/queries/emails";
@@ -75,24 +79,13 @@ function SearchResults({ mailboxId, urlQuery }: { mailboxId: string | undefined;
     selectEmail(email.id);
     if (!email.read && mailboxId) updateEmail.mutate({ mailboxId, id: email.id, data: { read: true } });
   };
-  const folderDisplayName = (name: string | null | undefined): string => {
-    if (!name) return "";
-    const map: Record<string, string> = {
-      inbox: "Inbox",
-      sent: "Sent",
-      draft: "Drafts",
-      archive: "Archive",
-      trash: "Trash",
-    };
-    return map[name.toLowerCase()] || name;
-  };
 
   return (
     <MailboxSplitView selectedEmailId={selectedEmailId}>
       <>
         <div className="border-kumo-line flex shrink-0 items-center gap-2 border-b px-4 py-3.5 md:px-5">
           <Tooltip
-            content="Back to inbox"
+            content={m.back_inbox()}
             side="bottom"
             render={
               <Button
@@ -101,16 +94,17 @@ function SearchResults({ mailboxId, urlQuery }: { mailboxId: string | undefined;
                 size="sm"
                 icon={<ArrowLeftIcon size={18} />}
                 onClick={() => navigate(`/mailbox/${mailboxId}/emails/inbox`)}
-                aria-label="Back to inbox"
+                aria-label={m.back_inbox()}
               />
             }
           />
           <div className="min-w-0 flex-1">
-            <h1 className="text-kumo-default truncate text-lg font-semibold">Search Results</h1>
+            <h1 className="text-kumo-default truncate text-lg font-semibold">{m.search_results()}</h1>
             {!isLoading && (
               <span className="text-kumo-subtle text-sm">
-                {totalCount} result{totalCount !== 1 ? "s" : ""}
-                {urlQuery ? ` for "${urlQuery}"` : ""}
+                {urlQuery
+                  ? m.results_for({ results: m.results_count({ count: totalCount }), query: urlQuery })
+                  : m.results_count({ count: totalCount })}
               </span>
             )}
           </div>
@@ -125,15 +119,13 @@ function SearchResults({ mailboxId, urlQuery }: { mailboxId: string | undefined;
               <div className="mb-4">
                 <MagnifyingGlassIcon size={48} weight="thin" className="text-kumo-subtle" />
               </div>
-              <h3 className="text-kumo-default mb-1.5 text-base font-semibold">No results found</h3>
+              <h3 className="text-kumo-default mb-1.5 text-base font-semibold">{m.no_results()}</h3>
               <p className="text-kumo-subtle max-w-xs text-sm">
-                {urlQuery
-                  ? `Nothing matched "${urlQuery}". Try different keywords or check your spelling.`
-                  : "Enter a search term to find emails by subject, sender, or content."}
+                {urlQuery ? m.no_search_match({ query: urlQuery }) : m.search_help()}
               </p>
               {urlQuery && (
                 <p className="text-kumo-subtle mt-3 max-w-sm text-xs">
-                  Tip: Use operators like <code className="bg-kumo-tint rounded px-1">from:name</code>,{" "}
+                  {m.search_tip()} <code className="bg-kumo-tint rounded px-1">from:name</code>,{" "}
                   <code className="bg-kumo-tint rounded px-1">is:unread</code>,{" "}
                   <code className="bg-kumo-tint rounded px-1">has:attachment</code>,{" "}
                   <code className="bg-kumo-tint rounded px-1">before:2025-01-01</code>
@@ -170,7 +162,9 @@ function SearchResults({ mailboxId, urlQuery }: { mailboxId: string | undefined;
                         >
                           {highlightTerms(email.sender, urlQuery)}
                         </span>
-                        {folderName && <Badge variant="outline">{folderDisplayName(folderName)}</Badge>}
+                        {folderName && (
+                          <Badge variant="outline">{getFolderDisplayName(email.folder_id || "", folderName)}</Badge>
+                        )}
                         <span className="text-kumo-subtle ml-auto shrink-0 text-sm">{formatListDate(email.date)}</span>
                       </div>
                       <div
@@ -192,12 +186,7 @@ function SearchResults({ mailboxId, urlQuery }: { mailboxId: string | undefined;
         </div>
         {totalCount > SEARCH_PAGE_SIZE && (
           <div className="border-kumo-line flex shrink-0 justify-center border-t py-3">
-            <Pagination page={page} setPage={setPage} perPage={SEARCH_PAGE_SIZE} totalCount={totalCount}>
-              <div className="grow" aria-live="polite" aria-atomic="true">
-                <Pagination.Info />
-              </div>
-              <Pagination.Controls />
-            </Pagination>
+            <MailPagination page={page} setPage={setPage} perPage={SEARCH_PAGE_SIZE} totalCount={totalCount} />
           </div>
         )}
       </>

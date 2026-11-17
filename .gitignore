@@ -17,3 +17,8 @@ opencode.jsonc
 skills-lock.json
 .DS_Store
 worker-configuration.d.ts
+
+# Generated Paraglide runtime and local inlang state
+shared/paraglide/
+project.inlang/cache/
+project.inlang/project_id

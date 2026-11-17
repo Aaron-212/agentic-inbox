@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
+import { setCookie } from "hono/cookie";
+import { cookieName, cookieMaxAge } from "../shared/paraglide/runtime.js";
+import { paraglideMiddleware } from "../shared/paraglide/server.js";
 import { routeAgentRequest } from "agents";
 import { Hono } from "hono";
 import { jwtVerify, createRemoteJWKSet } from "jose";
@@ -96,7 +99,16 @@ app.all("/agents/*", async (c) => {
 
 // React Router catch-all: serves the SPA for all non-API routes
 app.all("*", (c) => {
-  return requestHandler(c.req.raw, new RouterContextProvider());
+  return paraglideMiddleware(c.req.raw, ({ request, locale }) => {
+    // Persist the server's resolved locale before hydration reads the cookie.
+    setCookie(c, cookieName, locale, {
+      path: "/",
+      maxAge: cookieMaxAge,
+      sameSite: "Lax",
+      secure: new URL(request.url).protocol === "https:",
+    });
+    return requestHandler(request, new RouterContextProvider());
+  });
 });
 
 // Export the Hono app as the default export with an email handler

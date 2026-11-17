@@ -1,15 +1,16 @@
+import { m } from "shared/paraglide/messages.js";
 import type { DeliveryStatus as RecipientStatus } from "shared/delivery";
 import type { Email } from "~/types";
 
-const labels: Record<RecipientStatus, string> = {
-  queued: "Queued for delivery",
-  delivered: "Accepted by recipient mail server",
-  deferred: "Delayed; Cloudflare is retrying",
-  bounced: "Bounced",
-  failed: "Delivery failed",
-  rejected: "Rejected",
-  complained: "Marked as spam",
-};
+const getLabels = (): Record<RecipientStatus, string> => ({
+  queued: m.queued(),
+  delivered: m.delivered(),
+  deferred: m.deferred(),
+  bounced: m.bounced(),
+  failed: m.delivery_failed(),
+  rejected: m.rejected(),
+  complained: m.complained(),
+});
 
 export default function DeliveryStatus({ email }: { email: Email }) {
   if (!email.send_status) return null;
@@ -17,10 +18,10 @@ export default function DeliveryStatus({ email }: { email: Email }) {
     return (
       <p className="text-kumo-subtle mt-2 text-xs break-words" role="status">
         {email.send_status === "sending"
-          ? "Sending…"
+          ? m.sending_status()
           : email.send_status === "failed"
-            ? "Sending failed."
-            : "Send status unknown. Check Cloudflare's Activity log before retrying."}
+            ? m.sending_failed()
+            : m.send_status_unknown()}
         {email.send_error && ` ${email.send_error_code ? `${email.send_error_code}: ` : ""}${email.send_error}`}
       </p>
     );
@@ -32,14 +33,14 @@ export default function DeliveryStatus({ email }: { email: Email }) {
   const complained = deliveries.some(({ status }) => status === "complained");
   const deferred = deliveries.some(({ status }) => status === "deferred");
   const summary = failed
-    ? `Delivery failed for ${failed} of ${deliveries.length} recipients`
+    ? m.delivery_failed_count({ failed, count: deliveries.length })
     : complained
-      ? "Marked as spam"
+      ? m.complained()
       : delivered && delivered === deliveries.length
-        ? "Accepted by recipient mail server"
+        ? m.delivered()
         : deferred
-          ? "Delivery delayed; Cloudflare is retrying"
-          : "Queued for delivery";
+          ? m.delivery_delayed()
+          : m.queued();
 
   return (
     <details className="text-kumo-subtle mt-2 text-xs wrap-break-word">
@@ -49,13 +50,13 @@ export default function DeliveryStatus({ email }: { email: Email }) {
       <ul className="mt-2 space-y-1" role="list">
         {deliveries.map((delivery) => (
           <li key={delivery.recipient}>
-            {delivery.recipient}: {labels[delivery.status]}
+            {delivery.recipient}: {getLabels()[delivery.status]}
             {delivery.reason && ` — ${delivery.reason}`}
             {delivery.smtp_code && ` (${delivery.smtp_code})`}
           </li>
         ))}
       </ul>
-      <p className="mt-2">Message ID: {email.provider_message_id}</p>
+      <p className="mt-2">{m.message_id({ id: email.provider_message_id || "" })}</p>
     </details>
   );
 }

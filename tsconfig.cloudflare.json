@@ -26,5 +26,6 @@
     "noImplicitAny": false,
     "esModuleInterop": true,
     "resolveJsonModule": true
-  }
+  },
+  "exclude": ["shared/paraglide"]
 }

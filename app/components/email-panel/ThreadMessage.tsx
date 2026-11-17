@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
+import { m } from "shared/paraglide/messages.js";
+
 import { Badge, Button, Tooltip } from "@cloudflare/kumo";
 import {
   CaretDownIcon,
@@ -44,7 +46,7 @@ function Avatar({ isDraft, isSelf, sender }: { isDraft?: boolean; isSelf: boolea
             : "bg-kumo-fill text-kumo-default"
       }`}
     >
-      {isDraft ? "D" : sender.charAt(0).toUpperCase()}
+      {isDraft ? m.draft().charAt(0) : sender.charAt(0).toUpperCase()}
     </div>
   );
 }
@@ -66,7 +68,7 @@ export default function ThreadMessage({
 }: ThreadMessageProps) {
   const isSelf = email.sender === mailboxEmail;
   const containerClassName = `${!isLast ? "border-b border-kumo-line" : ""} ${isDraft ? "border-l-2 border-l-kumo-warning bg-kumo-warning/[0.02]" : ""}`;
-  const senderLabel = isDraft ? "Draft reply" : isSelf ? "You" : email.sender;
+  const senderLabel = isDraft ? m.draft_reply() : isSelf ? m.you() : email.sender;
 
   if (!isExpanded) {
     return (
@@ -100,7 +102,7 @@ export default function ThreadMessage({
       <div className="px-4 py-4 md:px-6">
         <div className="mb-3 flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2.5">
-            <button type="button" onClick={onToggleExpand} className="shrink-0" aria-label="Collapse message">
+            <button type="button" onClick={onToggleExpand} className="shrink-0" aria-label={m.collapse_message()}>
               <div className="hover:ring-kumo-brand/30 cursor-pointer rounded-full transition-shadow hover:ring-2">
                 <Avatar isDraft={isDraft} isSelf={isSelf} sender={email.sender} />
               </div>
@@ -108,16 +110,16 @@ export default function ThreadMessage({
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-kumo-default truncate text-sm font-medium">{senderLabel}</span>
-                {isDraft && <Badge variant="outline">Draft</Badge>}
+                {isDraft && <Badge variant="outline">{m.draft()}</Badge>}
               </div>
-              <div className="text-kumo-subtle text-xs">To: {email.recipient}</div>
+              <div className="text-kumo-subtle text-xs">{m.to_address({ email: email.recipient })}</div>
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-1">
             <span className="text-kumo-subtle text-xs">{formatShortDate(email.date)}</span>
             {onViewSource && (
               <Tooltip
-                content="View source"
+                content={m.view_source()}
                 side="bottom"
                 render={
                   <Button
@@ -126,13 +128,13 @@ export default function ThreadMessage({
                     size="sm"
                     icon={<CodeIcon size={14} />}
                     onClick={onViewSource}
-                    aria-label="View source"
+                    aria-label={m.view_source()}
                     className="!h-6 !w-6 transition-opacity"
                   />
                 }
               />
             )}
-            <button type="button" onClick={onToggleExpand} className="ml-1" aria-label="Collapse message">
+            <button type="button" onClick={onToggleExpand} className="ml-1" aria-label={m.collapse_message()}>
               <CaretUpIcon size={14} className="text-kumo-subtle hover:text-kumo-default transition-colors" />
             </button>
           </div>
@@ -157,7 +159,7 @@ export default function ThreadMessage({
                 loading={isSending}
                 disabled={isSending}
               >
-                {isSending ? "Sending..." : "Send"}
+                {isSending ? m.sending() : m.send()}
               </Button>
             )}
             {onEditDraft && (
@@ -168,7 +170,7 @@ export default function ThreadMessage({
                 onClick={onEditDraft}
                 disabled={isSending}
               >
-                Edit
+                {m.edit()}
               </Button>
             )}
             {onDeleteDraft && (
@@ -179,7 +181,7 @@ export default function ThreadMessage({
                 onClick={onDeleteDraft}
                 disabled={isSending}
               >
-                Discard
+                {m.discard()}
               </Button>
             )}
           </div>

@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
+import { m } from "shared/paraglide/messages.js";
+
 import type { Email, Folder, Mailbox } from "~/types";
 
 const REQUEST_TIMEOUT_MS = 30_000;
@@ -11,7 +13,7 @@ export class ApiError extends Error {
   body: Record<string, unknown>;
 
   constructor(status: number, body: Record<string, unknown>) {
-    super((body.error as string) || `Request failed: ${status}`);
+    super((body.error as string) || m.request_failed({ status }));
     this.name = "ApiError";
     this.status = status;
     this.body = body;

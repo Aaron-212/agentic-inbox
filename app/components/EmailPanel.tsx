@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
+import { m } from "shared/paraglide/messages.js";
+
 import { getAIFeatures } from "shared/ai-features";
 import { useKumoToastManager } from "@cloudflare/kumo";
 import { useMemo, useState } from "react";
@@ -142,7 +144,7 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
         .sessions.find((session) => session.mailboxId === mailboxId && session.draftId === email.id);
       if (composer) {
         useComposeStore.getState().restore(composer.id);
-        toastManager.add({ title: "Close the composer before moving this draft." });
+        toastManager.add({ title: m.close_before_move() });
         return;
       }
       moveEmailMut.mutate({ mailboxId, id: email.id, folderId });
@@ -156,7 +158,7 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
         .sessions.find((session) => session.mailboxId === mailboxId && session.draftId === email.id);
       if (composer) {
         useComposeStore.getState().restore(composer.id);
-        toastManager.add({ title: "Discard this draft from its open composer." });
+        toastManager.add({ title: m.discard_in_composer() });
         return;
       }
       if (
@@ -194,19 +196,19 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
         .sessions.some((session) => session.mailboxId === mailboxId && session.draftId === target.id)
     ) {
       handleEditDraft(target);
-      toastManager.add({ title: "Discard this draft from its open composer." });
+      toastManager.add({ title: m.discard_in_composer() });
       return;
     }
     if (
       !(await confirm({
-        title: "Discard draft",
-        description: "Discard this draft?",
-        confirmLabel: "Discard",
+        title: m.discard_draft(),
+        description: m.discard_confirm(),
+        confirmLabel: m.discard(),
       }))
     )
       return;
     deleteEmailMut.mutate({ mailboxId, id: target.id });
-    toastManager.add({ title: "Draft discarded" });
+    toastManager.add({ title: m.draft_discarded() });
     if (target.id === emailId) closePanel();
   };
 
@@ -219,7 +221,7 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
         .sessions.some((session) => session.mailboxId === mailboxId && session.draftId === target.id)
     ) {
       handleEditDraft(target);
-      toastManager.add({ title: "Send this draft from its open composer." });
+      toastManager.add({ title: m.send_in_composer() });
       return;
     }
     setIsSending(true);
@@ -232,12 +234,12 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
         } catch {}
       }
       if (!target.recipient) {
-        toastManager.add({ title: "Cannot send: no recipient set on this draft.", variant: "error" });
+        toastManager.add({ title: m.no_recipient(), variant: "error" });
         return;
       }
       const toRecipients = splitEmailList(target.recipient);
       if (toRecipients.length === 0) {
-        toastManager.add({ title: "Cannot send: no valid recipient set on this draft.", variant: "error" });
+        toastManager.add({ title: m.invalid_recipient(), variant: "error" });
         return;
       }
       const fromName = currentMailbox.settings?.fromName || currentMailbox.name;
@@ -250,7 +252,7 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
         cc: toEmailListValue(splitEmailList(target.cc)),
         bcc: toEmailListValue(splitEmailList(target.bcc)),
         from,
-        subject: target.subject || "(no subject)",
+        subject: target.subject || m.no_subject_lower(),
         html: target.body || "",
         text: target.body ? target.body.replace(/<[^>]*>/g, "").trim() : "",
       };
@@ -261,14 +263,10 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
       else await sendEmailMut.mutateAsync({ mailboxId, email: emailData });
       accepted = true;
       await deleteEmailMut.mutateAsync({ mailboxId, id: target.id });
-      toastManager.add({ title: "Email accepted for delivery" });
+      toastManager.add({ title: m.email_accepted() });
       if (isDraftFolder) closePanel();
     } catch (err) {
-      const message = accepted
-        ? "Email accepted, but its saved draft could not be removed. Do not resend it."
-        : err instanceof ApiError
-          ? err.message
-          : "Send status unknown. Check Sent and Cloudflare's Activity log before retrying.";
+      const message = accepted ? m.accepted_cleanup_failed() : err instanceof ApiError ? err.message : m.send_unknown();
       toastManager.add({ title: message, variant: "error" });
     } finally {
       setIsSending(false);
@@ -284,11 +282,11 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
       if (current.selectedEmailId === emailId && !useComposeStore.getState().sessions.length) {
         startCompose(mailboxId, { mode: "reply", originalEmail, draftEmail });
       } else {
-        toastManager.add({ title: "AI reply saved to Drafts" });
+        toastManager.add({ title: m.ai_reply_saved() });
       }
     } catch (error) {
       toastManager.add({
-        title: error instanceof Error ? error.message : "Failed to generate an AI reply.",
+        title: error instanceof Error ? error.message : m.ai_reply_failed(),
         variant: "error",
       });
     }

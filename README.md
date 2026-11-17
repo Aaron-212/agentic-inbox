@@ -61,6 +61,26 @@ mise exec -- pnpm install
 mise exec -- pnpm run dev
 ```
 
+### Translations
+
+Use the language selector in the mailbox list or inbox header to choose English or Simplified Chinese. The app saves
+that choice in a cookie and reloads the page. On your first visit, it detects a supported browser language and falls
+back to English.
+
+To update UI translations, edit `messages/en.json` and `messages/zh-CN.json` with matching keys and interpolation
+parameters. Keep plural rules in the catalogs. Paraglide generates typed message functions in `shared/paraglide/`;
+edit the catalogs rather than the generated files. Email bodies, custom folder names, and protocol identifiers retain
+their original content.
+
+The Vite plugin regenerates messages during development. To regenerate them separately, run:
+
+```bash
+mise exec -- pnpm run i18n:compile
+```
+
+Run `mise exec -- pnpm run typecheck` to check message calls along with the application types. Locale strategies and
+cookie settings are configured in `project.inlang/paraglide.config.ts`.
+
 ### Configuration
 
 1. Set your domain in `wrangler.jsonc`

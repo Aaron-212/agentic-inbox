@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
-import { Button, Pagination, Tooltip, useKumoToastManager } from "@cloudflare/kumo";
+import { m } from "shared/paraglide/messages.js";
+
+import { Button, Tooltip, useKumoToastManager } from "@cloudflare/kumo";
 import {
   ArchiveIcon,
   ArrowBendUpLeftIcon,
@@ -21,8 +23,9 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useParams, useSearchParams } from "react-router";
-import { Folders, getEmailDeleteLabel, getEmailDeleteConfirmation } from "shared/folders";
+import { Folders, getFolderDisplayName, getEmailDeleteLabel, getEmailDeleteConfirmation } from "shared/folders";
 import { formatListDate } from "shared/dates";
+import MailPagination from "~/components/MailPagination";
 import MailboxSplitView from "~/components/MailboxSplitView";
 import { getSnippetText } from "~/lib/utils";
 import { useDeleteEmail, useEmails, useMarkThreadRead, useUpdateEmail } from "~/queries/emails";
@@ -35,7 +38,7 @@ import type { Email } from "~/types";
 
 const PAGE_SIZE = 25;
 
-const FOLDER_EMPTY_STATES: Record<
+const getFolderEmptyStates = (): Record<
   string,
   {
     icon: React.ReactNode;
@@ -43,42 +46,41 @@ const FOLDER_EMPTY_STATES: Record<
     description: string;
     showCompose?: boolean;
   }
-> = {
+> => ({
   [Folders.INBOX]: {
     icon: <TrayIcon size={48} weight="thin" className="text-kumo-subtle" />,
-    title: "Your inbox is empty",
-    description: "New emails will appear here when they arrive. Send an email to get the conversation started.",
+    title: m.empty_inbox(),
+    description: m.empty_inbox_help(),
     showCompose: true,
   },
   [Folders.SENT]: {
     icon: <PaperPlaneTiltIcon size={48} weight="thin" className="text-kumo-subtle" />,
-    title: "No sent emails",
-    description: "Emails you send will show up here.",
+    title: m.empty_sent(),
+    description: m.empty_sent_help(),
     showCompose: true,
   },
   [Folders.DRAFT]: {
     icon: <FileIcon size={48} weight="thin" className="text-kumo-subtle" />,
-    title: "No drafts",
-    description: "Emails you're still working on will be saved here.",
+    title: m.empty_drafts(),
+    description: m.empty_drafts_help(),
     showCompose: true,
   },
   [Folders.ARCHIVE]: {
     icon: <ArchiveIcon size={48} weight="thin" className="text-kumo-subtle" />,
-    title: "Archive is empty",
-    description: "Move emails here to keep your inbox clean without deleting them.",
+    title: m.empty_archive(),
+    description: m.empty_archive_help(),
   },
   [Folders.SPAM]: {
     icon: <ShieldWarningIcon size={48} weight="thin" className="text-kumo-subtle" />,
-    title: "No spam",
-    description: "Spam is automatically deleted during daily cleanup after at least 7 days.",
+    title: m.empty_spam(),
+    description: m.empty_spam_help(),
   },
   [Folders.TRASH]: {
     icon: <TrashIcon size={48} weight="thin" className="text-kumo-subtle" />,
-    title: "Trash is empty",
-    description:
-      "Emails are automatically deleted during daily cleanup after at least one day. You can restore them before then.",
+    title: m.empty_trash(),
+    description: m.empty_trash_help(),
   },
-};
+});
 
 function EmailListSkeleton() {
   return (
@@ -104,10 +106,10 @@ function EmailListSkeleton() {
 }
 
 function FolderEmptyState({ folder, onCompose }: { folder?: string; onCompose: () => void }) {
-  const config = (folder && FOLDER_EMPTY_STATES[folder]) || {
+  const config = (folder && getFolderEmptyStates()[folder]) || {
     icon: <EnvelopeSimpleIcon size={48} weight="thin" className="text-kumo-subtle" />,
-    title: "No emails",
-    description: "This folder is empty.",
+    title: m.empty_folder(),
+    description: m.empty_folder_help(),
   };
 
   return (
@@ -117,7 +119,7 @@ function FolderEmptyState({ folder, onCompose }: { folder?: string; onCompose: (
       <p className="text-kumo-subtle mb-5 max-w-xs text-sm">{config.description}</p>
       {"showCompose" in config && config.showCompose && (
         <Button variant="primary" size="sm" icon={<PencilSimpleIcon size={16} />} onClick={onCompose}>
-          Compose
+          {m.compose()}
         </Button>
       )}
     </div>
@@ -160,8 +162,7 @@ export default function EmailListRoute() {
 
   const folderName = useMemo(() => {
     const found = folders.find((f) => f.id === folder);
-    if (found) return found.name;
-    return folder ? folder.charAt(0).toUpperCase() + folder.slice(1) : "Inbox";
+    return folder ? getFolderDisplayName(folder, found?.name) : m.inbox();
   }, [folders, folder]);
 
   const isPanelOpen = selectedEmailId !== null;
@@ -204,7 +205,7 @@ export default function EmailListRoute() {
         .sessions.find((session) => session.mailboxId === mailboxId && session.draftId === emailId);
       if (composer) {
         useComposeStore.getState().restore(composer.id);
-        toastManager.add({ title: "Discard this draft from its open composer." });
+        toastManager.add({ title: m.discard_in_composer() });
         return;
       }
       const confirmed = await confirm({
@@ -273,11 +274,11 @@ export default function EmailListRoute() {
         <div className="flex items-center gap-1">
           {totalCount > 0 && (
             <span className="text-kumo-subtle mr-2 hidden text-sm sm:inline">
-              {totalCount} conversation{totalCount !== 1 ? "s" : ""}
+              {m.conversations_count({ count: totalCount })}
             </span>
           )}
           <Tooltip
-            content={isRefreshing ? "Refreshing..." : "Refresh"}
+            content={isRefreshing ? m.refreshing() : m.refresh()}
             side="bottom"
             render={
               <Button
@@ -287,7 +288,7 @@ export default function EmailListRoute() {
                 icon={<ArrowsClockwiseIcon size={18} className={isRefreshing ? "animate-spin" : ""} />}
                 onClick={handleRefresh}
                 disabled={isRefreshing}
-                aria-label="Refresh"
+                aria-label={m.refresh()}
               />
             }
           />
@@ -354,10 +355,12 @@ export default function EmailListRoute() {
                           {email.thread_count}
                         </span>
                       )}
-                      {email.has_draft && <span className="text-kumo-danger shrink-0 text-xs font-medium">Draft</span>}
+                      {email.has_draft && (
+                        <span className="text-kumo-danger shrink-0 text-xs font-medium">{m.draft()}</span>
+                      )}
                       {email.needs_reply && !email.has_draft && (
                         <Tooltip
-                          content="Needs reply"
+                          content={m.needs_reply()}
                           render={
                             <span className="text-kumo-warning shrink-0">
                               <ArrowBendUpLeftIcon size={14} weight="bold" />
@@ -375,7 +378,7 @@ export default function EmailListRoute() {
                     {snippet && (
                       <div className="text-kumo-subtle mt-0.5 flex items-center gap-1 text-sm">
                         {summary && (
-                          <span role="img" aria-label="AI summary" className="shrink-0">
+                          <span role="img" aria-label={m.ai_summary()} className="shrink-0">
                             <ListStarIcon size={14} aria-hidden="true" />
                           </span>
                         )}
@@ -387,7 +390,7 @@ export default function EmailListRoute() {
                   {/* Hover actions */}
                   <div className="hidden shrink-0 items-center group-hover:flex">
                     <Tooltip
-                      content={email.read ? "Mark unread" : "Mark read"}
+                      content={email.read ? m.mark_unread() : m.mark_read()}
                       render={
                         <Button
                           variant="ghost"
@@ -403,7 +406,7 @@ export default function EmailListRoute() {
                                 data: { read: !email.read },
                               });
                           }}
-                          aria-label={email.read ? "Mark unread" : "Mark read"}
+                          aria-label={email.read ? m.mark_unread() : m.mark_read()}
                         />
                       }
                     />
@@ -433,12 +436,7 @@ export default function EmailListRoute() {
       {/* Pagination */}
       {totalCount > PAGE_SIZE && (
         <div className="border-kumo-line flex shrink-0 justify-center border-t py-3">
-          <Pagination page={page} setPage={setPage} perPage={PAGE_SIZE} totalCount={totalCount}>
-            <div className="grow" aria-live="polite" aria-atomic="true">
-              <Pagination.Info />
-            </div>
-            <Pagination.Controls />
-          </Pagination>
+          <MailPagination page={page} setPage={setPage} perPage={PAGE_SIZE} totalCount={totalCount} />
         </div>
       )}
     </MailboxSplitView>

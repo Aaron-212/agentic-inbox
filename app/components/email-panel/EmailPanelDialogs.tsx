@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
+import { m } from "shared/paraglide/messages.js";
+
 import { Button, Dialog, Table } from "@cloudflare/kumo";
 import { downloadFile } from "~/lib/utils";
 import type { Email } from "~/types";
@@ -73,9 +75,9 @@ export default function EmailPanelDialogs({
       >
         <Dialog size="xl" className="flex flex-col overflow-hidden">
           <div className="border-kumo-line shrink-0 border-b px-5 py-4 sm:px-6">
-            <Dialog.Title className="text-base font-semibold">Email source headers</Dialog.Title>
+            <Dialog.Title className="text-base font-semibold">{m.source_headers()}</Dialog.Title>
             <Dialog.Description className="text-kumo-subtle mt-1 text-sm wrap-anywhere">
-              {sourceViewEmail?.subject || "(No subject)"}
+              {sourceViewEmail?.subject || m.no_subject()}
             </Dialog.Description>
           </div>
           {sourceViewEmail && (
@@ -86,7 +88,7 @@ export default function EmailPanelDialogs({
                     layout="fixed"
                     className="text-sm [&_th]:border-0 [&_th]:bg-transparent [&_th]:text-sm [&_th]:font-medium"
                   >
-                    <caption className="sr-only">Email source headers</caption>
+                    <caption className="sr-only">{m.source_headers()}</caption>
                     <colgroup>
                       <col className="w-1/3 sm:w-1/4" />
                       <col />
@@ -107,7 +109,7 @@ export default function EmailPanelDialogs({
                 </div>
               )}
               {sourceHeaders.length === 0 && (
-                <p className="text-kumo-subtle py-8 text-center text-sm">No header data available for this email.</p>
+                <p className="text-kumo-subtle py-8 text-center text-sm">{m.no_headers()}</p>
               )}
             </div>
           )}
@@ -115,7 +117,7 @@ export default function EmailPanelDialogs({
             <Dialog.Close
               render={
                 <Button variant="secondary" size="sm">
-                  Close
+                  {m.close()}
                 </Button>
               }
             />
@@ -150,12 +152,12 @@ export default function EmailPanelDialogs({
                 }
               }}
             >
-              Download Original
+              {m.download_original()}
             </Button>
             <Dialog.Close
               render={
                 <Button variant="primary" size="sm">
-                  Close
+                  {m.close()}
                 </Button>
               }
             />

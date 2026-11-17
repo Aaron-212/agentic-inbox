@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
+import { m } from "shared/paraglide/messages.js";
+
 import { Button, Tooltip } from "@cloudflare/kumo";
 import { CheckIcon, CopyIcon, PlugsIcon, WrenchIcon } from "@phosphor-icons/react";
 import { useState } from "react";
@@ -21,7 +23,7 @@ function CopyButton({ text }: { text: string }) {
 
   return (
     <Tooltip
-      content={copied ? "Copied!" : "Copy"}
+      content={copied ? m.copied() : m.copy()}
       render={
         <Button
           variant="ghost"
@@ -29,24 +31,24 @@ function CopyButton({ text }: { text: string }) {
           size="sm"
           icon={copied ? <CheckIcon size={12} weight="bold" className="text-kumo-success" /> : <CopyIcon size={12} />}
           onClick={handleCopy}
-          aria-label="Copy to clipboard"
+          aria-label={m.copy_clipboard()}
         />
       }
     />
   );
 }
 
-const TOOLS = [
-  { name: "list_mailboxes", desc: "List all mailboxes" },
-  { name: "list_emails", desc: "List emails in a folder" },
-  { name: "get_email", desc: "Read a full email with body" },
-  { name: "get_thread", desc: "Load a conversation thread" },
-  { name: "search_emails", desc: "Search emails by query" },
-  { name: "draft_reply", desc: "Draft a reply to an email" },
-  { name: "send_reply", desc: "Send a reply" },
-  { name: "send_email", desc: "Send a new email" },
-  { name: "mark_email_read", desc: "Mark email as read/unread" },
-  { name: "move_email", desc: "Move email to a folder" },
+const getTools = () => [
+  { name: "list_mailboxes", desc: m.mcp_list_mailboxes() },
+  { name: "list_emails", desc: m.mcp_list_emails() },
+  { name: "get_email", desc: m.mcp_get_email() },
+  { name: "get_thread", desc: m.mcp_get_thread() },
+  { name: "search_emails", desc: m.mcp_search() },
+  { name: "draft_reply", desc: m.mcp_draft_reply() },
+  { name: "send_reply", desc: m.mcp_send_reply() },
+  { name: "send_email", desc: m.mcp_send_email() },
+  { name: "mark_email_read", desc: m.mcp_mark_read() },
+  { name: "move_email", desc: m.mcp_move() },
 ];
 
 export default function MCPPanel() {
@@ -64,19 +66,16 @@ export default function MCPPanel() {
               <PlugsIcon size={20} weight="duotone" className="text-kumo-brand" />
             </div>
             <div>
-              <h3 className="text-kumo-default text-sm font-semibold">Connect via MCP</h3>
-              <p className="text-kumo-subtle text-xs">Model Context Protocol</p>
+              <h3 className="text-kumo-default text-sm font-semibold">{m.connect_mcp()}</h3>
+              <p className="text-kumo-subtle text-xs">{m.mcp_full_name()}</p>
             </div>
           </div>
-          <p className="text-kumo-subtle text-xs leading-relaxed">
-            This email agent exposes an MCP server so AI coding assistants can manage your inbox directly — read emails,
-            search, draft replies, and send messages using natural language.
-          </p>
+          <p className="text-kumo-subtle text-xs leading-relaxed">{m.mcp_intro()}</p>
         </div>
 
         {/* MCP URL */}
         <div className="space-y-1.5">
-          <label className="text-kumo-subtle block text-xs font-medium">Server URL</label>
+          <label className="text-kumo-subtle block text-xs font-medium">{m.server_url()}</label>
           <div className="group relative">
             <div className="absolute top-1/2 right-1.5 -translate-y-1/2">
               <CopyButton text={mcpUrl} />
@@ -89,9 +88,11 @@ export default function MCPPanel() {
 
         {/* Available tools */}
         <div className="space-y-2">
-          <h4 className="text-kumo-subtle px-0.5 text-xs font-semibold tracking-wider uppercase">Available Tools</h4>
+          <h4 className="text-kumo-subtle px-0.5 text-xs font-semibold tracking-wider uppercase">
+            {m.available_tools()}
+          </h4>
           <div className="border-kumo-line divide-kumo-line divide-y rounded-lg border">
-            {TOOLS.map((tool) => (
+            {getTools().map((tool) => (
               <div key={tool.name} className="flex items-center gap-2.5 px-3 py-2">
                 <WrenchIcon size={12} weight="bold" className="text-kumo-brand shrink-0" />
                 <div className="min-w-0 flex-1">

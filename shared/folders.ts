@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
+import { m } from "./paraglide/messages.js";
+
 /**
  * Canonical folder ID constants.
  *
@@ -53,22 +55,28 @@ export const FOLDER_TOOL_DESCRIPTION = "Folder to list: inbox, sent, draft, arch
 /** Formatted string for move-email tool descriptions. */
 export const MOVE_FOLDER_TOOL_DESCRIPTION = "Target folder: inbox, sent, draft, archive, spam, trash";
 
-/**
- * Look up a display name for a folder ID, falling back to the raw ID
- * with a capitalised first letter.
- */
-export function getFolderDisplayName(folderId: string): string {
-  return FOLDER_DISPLAY_NAMES[folderId.toLowerCase()] || folderId.charAt(0).toUpperCase() + folderId.slice(1);
+const folderMessages: Record<string, () => string> = {
+  [Folders.INBOX]: m.inbox,
+  [Folders.SENT]: m.sent,
+  [Folders.DRAFT]: m.drafts,
+  [Folders.ARCHIVE]: m.archive,
+  [Folders.SPAM]: m.spam,
+  [Folders.TRASH]: m.trash,
+};
+
+/** Localize system folders, preserving custom names and unknown IDs. */
+export function getFolderDisplayName(folderId: string, fallbackName?: string): string {
+  return (
+    folderMessages[folderId.toLowerCase()]?.() ?? fallbackName ?? folderId.charAt(0).toUpperCase() + folderId.slice(1)
+  );
 }
 
 export function getEmailDeleteLabel(folderId: string | null | undefined): string {
-  if (folderId === Folders.DRAFT) return "Discard draft";
-  return folderId === Folders.TRASH ? "Delete permanently" : "Move to Trash";
+  if (folderId === Folders.DRAFT) return m.discard_draft();
+  return folderId === Folders.TRASH ? m.delete_permanently() : m.move_trash();
 }
 
 export function getEmailDeleteConfirmation(folderId: string | null | undefined): string {
-  if (folderId === Folders.DRAFT) return "Discard this draft?";
-  return folderId === Folders.TRASH
-    ? "Permanently delete this email? This cannot be undone."
-    : "Move this email to Trash? It will be permanently deleted during daily cleanup after at least one day.";
+  if (folderId === Folders.DRAFT) return m.discard_confirm();
+  return folderId === Folders.TRASH ? m.permanent_delete_confirm() : m.trash_confirm();
 }

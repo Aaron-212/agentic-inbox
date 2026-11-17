@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
+import { m } from "shared/paraglide/messages.js";
+
 import { Badge, Button, Loader, Tooltip } from "@cloudflare/kumo";
 import {
   ArrowUpIcon,
@@ -26,47 +28,47 @@ import { useConfirmation } from "~/hooks/useConfirmation";
 import { useUIStore } from "~/hooks/useUIStore";
 import type { UIMessage } from "ai";
 
-const TOOL_LABELS: Record<string, { label: string; icon: React.ReactNode }> = {
+const getToolLabels = (): Record<string, { label: string; icon: React.ReactNode }> => ({
   list_emails: {
-    label: "Fetching emails",
+    label: m.fetching_emails(),
     icon: <EnvelopeSimpleIcon size={14} weight="bold" />,
   },
   get_email: {
-    label: "Reading email",
+    label: m.reading_email(),
     icon: <EyeIcon size={14} weight="bold" />,
   },
   get_thread: {
-    label: "Loading thread",
+    label: m.loading_thread(),
     icon: <ArrowBendUpLeftIcon size={14} weight="bold" />,
   },
   search_emails: {
-    label: "Searching",
+    label: m.searching(),
     icon: <MagnifyingGlassIcon size={14} weight="bold" />,
   },
   draft_email: {
-    label: "Drafting email",
+    label: m.drafting_email(),
     icon: <PaperPlaneTiltIcon size={14} weight="bold" />,
   },
   draft_reply: {
-    label: "Drafting reply",
+    label: m.drafting_reply(),
     icon: <PaperPlaneTiltIcon size={14} weight="bold" />,
   },
   discard_draft: {
-    label: "Discarding draft",
+    label: m.discarding_draft(),
     icon: <TrashIcon size={14} weight="bold" />,
   },
   mark_email_read: {
-    label: "Updating status",
+    label: m.updating_status(),
     icon: <CheckCircleIcon size={14} weight="bold" />,
   },
   move_email: {
-    label: "Moving email",
+    label: m.moving_email(),
     icon: <EnvelopeSimpleIcon size={14} weight="bold" />,
   },
-};
+});
 
 function ToolCallBadge({ toolName, state }: { toolName: string; state: string }) {
-  const info = TOOL_LABELS[toolName] || {
+  const info = getToolLabels()[toolName] || {
     label: toolName,
     icon: <WrenchIcon size={14} weight="bold" />,
   };
@@ -102,7 +104,7 @@ function DraftActions({ onEdit, disabled }: { onEdit: () => void; disabled: bool
   return (
     <div className="mt-1 flex gap-1.5">
       <Button variant="primary" size="sm" icon={<PencilSimpleIcon size={14} />} onClick={onEdit} disabled={disabled}>
-        Edit & send in composer
+        {m.edit_send_composer()}
       </Button>
     </div>
   );
@@ -247,15 +249,12 @@ function AgentChatConnected({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
+      if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) return;
       handleSend();
     }
   };
 
-  const suggestedPrompts = [
-    "Show me the latest inbox emails",
-    "Any unread emails?",
-    "Draft a response to the latest email",
-  ];
+  const suggestedPrompts = [m.suggest_latest(), m.suggest_unread(), m.suggest_reply()];
 
   return (
     <div className="flex h-full flex-col">
@@ -264,13 +263,13 @@ function AgentChatConnected({
       <div className="border-kumo-line flex shrink-0 items-center justify-between border-b px-3 py-1.5">
         <div className="flex items-center gap-2">
           <Badge variant="beta">AI</Badge>
-          <span className="text-kumo-subtle text-xs">Email Agent</span>
+          <span className="text-kumo-subtle text-xs">{m.email_agent()}</span>
         </div>
         <div className="flex items-center gap-1">
           {isStreaming && <Loader size="sm" />}
           {messages.length > 0 && (
             <Tooltip
-              content="Clear chat"
+              content={m.clear_chat()}
               render={
                 <Button
                   variant="ghost"
@@ -280,15 +279,15 @@ function AgentChatConnected({
                   onClick={async () => {
                     if (
                       await confirm({
-                        title: "Clear chat history",
-                        description: "Clear chat history?",
-                        confirmLabel: "Clear chat",
+                        title: m.clear_chat_title(),
+                        description: m.clear_chat_confirm(),
+                        confirmLabel: m.clear_chat(),
                       })
                     ) {
                       setMessages([]);
                     }
                   }}
-                  aria-label="Clear chat"
+                  aria-label={m.clear_chat()}
                 />
               }
             />
@@ -303,9 +302,7 @@ function AgentChatConnected({
             <div className="bg-kumo-brand/10 flex h-12 w-12 items-center justify-center rounded-xl">
               <RobotIcon size={24} weight="duotone" className="text-kumo-brand" />
             </div>
-            <p className="text-kumo-subtle px-4 text-center text-xs leading-relaxed">
-              I can read emails, search conversations, and draft replies.
-            </p>
+            <p className="text-kumo-subtle px-4 text-center text-xs leading-relaxed">{m.agent_intro()}</p>
             <div className="flex w-full flex-col gap-1.5">
               {suggestedPrompts.map((prompt) => (
                 <button
@@ -359,7 +356,7 @@ function AgentChatConnected({
                       });
                     } else {
                       sendMessage({
-                        text: "Let me edit this draft first. Show me what you have so I can modify it.",
+                        text: m.edit_draft_prompt(),
                       });
                     }
                   }
@@ -373,7 +370,7 @@ function AgentChatConnected({
                 </div>
                 <div className="bg-kumo-elevated border-kumo-line flex items-center gap-1.5 rounded-lg rounded-tl-sm border px-3 py-2">
                   <Loader size="sm" />
-                  <span className="text-kumo-subtle text-xs">Thinking...</span>
+                  <span className="text-kumo-subtle text-xs">{m.thinking()}</span>
                 </div>
               </div>
             )}
@@ -386,7 +383,7 @@ function AgentChatConnected({
         {isStreaming ? (
           <div className="flex justify-center">
             <Button variant="secondary" size="sm" icon={<StopIcon size={14} weight="fill" />} onClick={() => stop()}>
-              Stop generating
+              {m.stop_generating()}
             </Button>
           </div>
         ) : (
@@ -398,9 +395,9 @@ function AgentChatConnected({
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask your email agent..."
+              placeholder={m.ask_agent()}
               rows={1}
-              aria-label="Chat message input"
+              aria-label={m.chat_input()}
               className="border-kumo-line bg-kumo-control text-kumo-default placeholder:text-kumo-subtle focus:ring-kumo-focus max-h-[100px] min-h-[36px] flex-1 resize-none rounded-lg border px-3 py-2 text-xs focus:ring-1 focus:outline-none"
               style={{ height: "auto", overflow: "hidden" }}
               onInput={(e) => {
@@ -417,7 +414,7 @@ function AgentChatConnected({
               disabled={!inputValue.trim()}
               icon={<ArrowUpIcon size={14} weight="bold" />}
               onClick={handleSend}
-              aria-label="Send message"
+              aria-label={m.send_message()}
             />
           </div>
         )}
@@ -445,7 +442,7 @@ export default function AgentPanel() {
       )
       .catch((err) => {
         console.error("Failed to load agent modules:", err);
-        setLoadError("Failed to connect to agent. Reload to retry.");
+        setLoadError(m.agent_connect_failed());
       });
   }, []);
 
@@ -461,7 +458,7 @@ export default function AgentPanel() {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2">
         <Loader size="base" />
-        <span className="text-kumo-subtle text-xs">Connecting...</span>
+        <span className="text-kumo-subtle text-xs">{m.connecting()}</span>
       </div>
     );
   }

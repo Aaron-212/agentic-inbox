@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
+import { m } from "shared/paraglide/messages.js";
+
 import { Button, Dialog, Input, Tooltip } from "@cloudflare/kumo";
 import {
   ArrowClockwiseIcon,
@@ -54,7 +56,7 @@ export default function RichTextEditor({ value, onChange, disabled = false }: Ri
     editorProps: {
       attributes: {
         role: "textbox",
-        "aria-label": "Message",
+        "aria-label": m.message(),
         "aria-multiline": "true",
         class:
           "prose prose-sm max-w-none focus:outline-none min-h-[180px] p-3 text-sm [&_blockquote]:border-l-2 [&_blockquote]:border-kumo-line [&_blockquote]:pl-3 [&_blockquote]:text-kumo-subtle [&_blockquote]:bg-kumo-tint [&_blockquote]:py-1 [&_blockquote]:my-2 [&_blockquote]:text-xs [&_blockquote]:rounded-r-sm",
@@ -87,7 +89,7 @@ export default function RichTextEditor({ value, onChange, disabled = false }: Ri
     <div className="border-kumo-line flex h-full flex-col overflow-hidden rounded-lg border">
       <Dialog.Root open={isLinkOpen} onOpenChange={setIsLinkOpen}>
         <Dialog className="p-6">
-          <Dialog.Title className="mb-4 text-base font-semibold">Edit link</Dialog.Title>
+          <Dialog.Title className="mb-4 text-base font-semibold">{m.edit_link()}</Dialog.Title>
           <form
             onSubmit={(event) => {
               event.preventDefault();
@@ -102,7 +104,7 @@ export default function RichTextEditor({ value, onChange, disabled = false }: Ri
             }}
           >
             <Input
-              label="URL"
+              label={m.url()}
               value={linkUrl}
               onChange={(event) => setLinkUrl(event.target.value)}
               disabled={disabled}
@@ -111,12 +113,12 @@ export default function RichTextEditor({ value, onChange, disabled = false }: Ri
               <Dialog.Close
                 render={
                   <Button type="button" variant="secondary">
-                    Cancel
+                    {m.cancel()}
                   </Button>
                 }
               />
               <Button type="submit" variant="primary" disabled={disabled}>
-                Save
+                {m.save()}
               </Button>
             </div>
           </form>
@@ -126,7 +128,7 @@ export default function RichTextEditor({ value, onChange, disabled = false }: Ri
       <div className="bg-kumo-recessed border-kumo-line flex shrink-0 flex-wrap items-center gap-0.5 border-b px-2 py-1.5">
         {/* Text formatting */}
         <Tooltip
-          content="Bold"
+          content={m.bold()}
           side="bottom"
           render={
             <Button
@@ -136,12 +138,12 @@ export default function RichTextEditor({ value, onChange, disabled = false }: Ri
               size="sm"
               icon={<TextBIcon size={16} />}
               onClick={() => editor.chain().focus().toggleBold().run()}
-              aria-label="Bold"
+              aria-label={m.bold()}
             />
           }
         />
         <Tooltip
-          content="Italic"
+          content={m.italic()}
           side="bottom"
           render={
             <Button
@@ -151,12 +153,12 @@ export default function RichTextEditor({ value, onChange, disabled = false }: Ri
               size="sm"
               icon={<TextItalicIcon size={16} />}
               onClick={() => editor.chain().focus().toggleItalic().run()}
-              aria-label="Italic"
+              aria-label={m.italic()}
             />
           }
         />
         <Tooltip
-          content="Underline"
+          content={m.underline()}
           side="bottom"
           render={
             <Button
@@ -166,12 +168,12 @@ export default function RichTextEditor({ value, onChange, disabled = false }: Ri
               size="sm"
               icon={<TextUnderlineIcon size={16} />}
               onClick={() => editor.chain().focus().toggleUnderline().run()}
-              aria-label="Underline"
+              aria-label={m.underline()}
             />
           }
         />
         <Tooltip
-          content="Strikethrough"
+          content={m.strikethrough()}
           side="bottom"
           render={
             <Button
@@ -181,7 +183,7 @@ export default function RichTextEditor({ value, onChange, disabled = false }: Ri
               size="sm"
               icon={<TextStrikethroughIcon size={16} />}
               onClick={() => editor.chain().focus().toggleStrike().run()}
-              aria-label="Strikethrough"
+              aria-label={m.strikethrough()}
             />
           }
         />
@@ -190,7 +192,7 @@ export default function RichTextEditor({ value, onChange, disabled = false }: Ri
 
         {/* Lists */}
         <Tooltip
-          content="Bullet list"
+          content={m.bullet_list()}
           side="bottom"
           render={
             <Button
@@ -200,12 +202,12 @@ export default function RichTextEditor({ value, onChange, disabled = false }: Ri
               size="sm"
               icon={<ListBulletsIcon size={16} />}
               onClick={() => editor.chain().focus().toggleBulletList().run()}
-              aria-label="Bullet list"
+              aria-label={m.bullet_list()}
             />
           }
         />
         <Tooltip
-          content="Numbered list"
+          content={m.numbered_list()}
           side="bottom"
           render={
             <Button
@@ -215,7 +217,7 @@ export default function RichTextEditor({ value, onChange, disabled = false }: Ri
               size="sm"
               icon={<ListNumbersIcon size={16} />}
               onClick={() => editor.chain().focus().toggleOrderedList().run()}
-              aria-label="Numbered list"
+              aria-label={m.numbered_list()}
             />
           }
         />
@@ -224,7 +226,7 @@ export default function RichTextEditor({ value, onChange, disabled = false }: Ri
 
         {/* Block formatting */}
         <Tooltip
-          content="Blockquote"
+          content={m.blockquote()}
           side="bottom"
           render={
             <Button
@@ -234,12 +236,12 @@ export default function RichTextEditor({ value, onChange, disabled = false }: Ri
               size="sm"
               icon={<QuotesIcon size={16} />}
               onClick={() => editor.chain().focus().toggleBlockquote().run()}
-              aria-label="Blockquote"
+              aria-label={m.blockquote()}
             />
           }
         />
         <Tooltip
-          content="Link"
+          content={m.link()}
           side="bottom"
           render={
             <Button
@@ -249,13 +251,13 @@ export default function RichTextEditor({ value, onChange, disabled = false }: Ri
               size="sm"
               icon={<LinkSimpleIcon size={16} />}
               onClick={setLink}
-              aria-label="Link"
+              aria-label={m.link()}
             />
           }
         />
         {editor.isActive("link") && (
           <Tooltip
-            content="Remove link"
+            content={m.remove_link()}
             side="bottom"
             render={
               <Button
@@ -265,13 +267,13 @@ export default function RichTextEditor({ value, onChange, disabled = false }: Ri
                 size="sm"
                 icon={<LinkBreakIcon size={16} />}
                 onClick={() => editor.chain().focus().unsetLink().run()}
-                aria-label="Remove link"
+                aria-label={m.remove_link()}
               />
             }
           />
         )}
         <Tooltip
-          content="Horizontal rule"
+          content={m.horizontal_rule()}
           side="bottom"
           render={
             <Button
@@ -281,7 +283,7 @@ export default function RichTextEditor({ value, onChange, disabled = false }: Ri
               size="sm"
               icon={<MinusIcon size={16} />}
               onClick={() => editor.chain().focus().setHorizontalRule().run()}
-              aria-label="Horizontal rule"
+              aria-label={m.horizontal_rule()}
             />
           }
         />
@@ -290,7 +292,7 @@ export default function RichTextEditor({ value, onChange, disabled = false }: Ri
 
         {/* Undo/Redo */}
         <Tooltip
-          content="Undo"
+          content={m.undo()}
           side="bottom"
           render={
             <Button
@@ -301,12 +303,12 @@ export default function RichTextEditor({ value, onChange, disabled = false }: Ri
               icon={<ArrowCounterClockwiseIcon size={16} />}
               onClick={() => editor.chain().focus().undo().run()}
               disabled={!editor.can().undo()}
-              aria-label="Undo"
+              aria-label={m.undo()}
             />
           }
         />
         <Tooltip
-          content="Redo"
+          content={m.redo()}
           side="bottom"
           render={
             <Button
@@ -317,7 +319,7 @@ export default function RichTextEditor({ value, onChange, disabled = false }: Ri
               icon={<ArrowClockwiseIcon size={16} />}
               onClick={() => editor.chain().focus().redo().run()}
               disabled={!editor.can().redo()}
-              aria-label="Redo"
+              aria-label={m.redo()}
             />
           }
         />

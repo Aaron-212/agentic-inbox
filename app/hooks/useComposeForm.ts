@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
+import { m } from "shared/paraglide/messages.js";
+
 import { useKumoToastManager } from "@cloudflare/kumo";
 import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -165,16 +167,16 @@ export function useComposeForm(session: ComposeSession) {
   const { to, cc, bcc, subject, body } = fields;
 
   const formTitle = useMemo(() => {
-    if (composeOptions.draftEmail) return "Edit Draft";
+    if (composeOptions.draftEmail) return m.edit_draft();
     switch (composeOptions.mode) {
       case "reply":
-        return "Reply";
+        return m.reply();
       case "reply-all":
-        return "Reply All";
+        return m.reply_all();
       case "forward":
-        return "Forward";
+        return m.forward();
       default:
-        return "New Message";
+        return m.new_message_title();
     }
   }, [composeOptions]);
 
@@ -222,10 +224,10 @@ export function useComposeForm(session: ComposeSession) {
       } catch (err) {
         setSaveFailed(true);
         toastRef.current.add({
-          title: "Couldn’t save draft. Your message is still in the composer.",
+          title: m.draft_save_failed(),
           variant: "error",
         });
-        setError(err instanceof Error ? err.message : "Couldn’t save draft. Your message is still here.");
+        setError(err instanceof Error ? err.message : m.draft_save_error());
         return false;
       } finally {
         pendingSaves.delete(session.id);
@@ -268,9 +270,9 @@ export function useComposeForm(session: ComposeSession) {
     if (
       meaningful &&
       !(await confirm({
-        title: "Discard draft",
-        description: "Discard this draft? This cannot be undone.",
-        confirmLabel: "Discard",
+        title: m.discard_draft(),
+        description: m.discard_irreversible(),
+        confirmLabel: m.discard(),
       }))
     )
       return;
@@ -289,7 +291,7 @@ export function useComposeForm(session: ComposeSession) {
       }
       useComposeStore.getState().remove(session.id);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Couldn’t discard draft.");
+      setError(err instanceof Error ? err.message : m.discard_failed());
     } finally {
       activeOperations.delete(session.id);
       setIsSending(false);
@@ -301,12 +303,12 @@ export function useComposeForm(session: ComposeSession) {
     if (activeOperations.has(session.id)) return;
     setError(null);
     if (!currentMailbox) {
-      setError("Mailbox is still loading.");
+      setError(m.mailbox_loading());
       return;
     }
     const toRecipients = splitEmailList(to);
     if (toRecipients.length === 0) {
-      setError("Add at least one recipient.");
+      setError(m.add_recipient());
       return;
     }
     const fromName = currentMailbox.settings?.fromName || currentMailbox.name;
@@ -334,11 +336,7 @@ export function useComposeForm(session: ComposeSession) {
         await forwardMutation.mutateAsync({ mailboxId, emailId: originalId, email: emailData });
       else await sendEmailMutation.mutateAsync({ mailboxId, email: emailData });
     } catch (err) {
-      setError(
-        err instanceof ApiError
-          ? err.message
-          : "Send status unknown. Check Sent and Cloudflare's Activity log before retrying.",
-      );
+      setError(err instanceof ApiError ? err.message : m.send_unknown());
       activeOperations.delete(session.id);
       setIsSending(false);
       return;
@@ -346,14 +344,14 @@ export function useComposeForm(session: ComposeSession) {
     // Sending succeeded: cleanup failure must never invite sending the same message again.
     const latest = useComposeStore.getState().sessions.find((item) => item.id === session.id);
     useComposeStore.getState().remove(session.id);
-    toastManager.add({ title: "Email accepted for delivery" });
+    toastManager.add({ title: m.email_accepted() });
     activeOperations.delete(session.id);
     if (latest && (latest.hasSavedDraft || latest.revision > 0)) {
       try {
         await deleteEmailMutation.mutateAsync({ mailboxId, id: latest.draftId });
       } catch (err) {
         if (!(err instanceof ApiError && err.status === 404))
-          toastManager.add({ title: "Email accepted, but its saved draft could not be removed.", variant: "error" });
+          toastManager.add({ title: m.cleanup_failed(), variant: "error" });
       }
     }
   };

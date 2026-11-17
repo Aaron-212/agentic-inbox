@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
+import { m } from "shared/paraglide/messages.js";
+
 import { Badge, Button, Dialog, Input, Sidebar as KumoSidebar, Tooltip } from "@cloudflare/kumo";
 import {
   ArchiveIcon,
@@ -31,13 +33,13 @@ const FOLDER_ICONS: Record<string, React.ReactNode> = {
   [Folders.TRASH]: <TrashIcon size={18} weight="regular" />,
 };
 
-const SYSTEM_FOLDER_LINKS = [
-  { id: Folders.INBOX, label: "Inbox" },
-  { id: Folders.SENT, label: "Sent" },
-  { id: Folders.DRAFT, label: "Drafts" },
-  { id: Folders.ARCHIVE, label: "Archive" },
-  { id: Folders.SPAM, label: "Spam" },
-  { id: Folders.TRASH, label: "Trash" },
+const getSystemFolderLinks = () => [
+  { id: Folders.INBOX, label: m.inbox() },
+  { id: Folders.SENT, label: m.sent() },
+  { id: Folders.DRAFT, label: m.drafts() },
+  { id: Folders.ARCHIVE, label: m.archive() },
+  { id: Folders.SPAM, label: m.spam() },
+  { id: Folders.TRASH, label: m.trash() },
 ];
 
 interface FolderLinkProps {
@@ -95,7 +97,7 @@ export default function Sidebar() {
   };
 
   const displayName = useMemo(() => {
-    if (!currentMailbox) return mailboxId?.split("@")[0] || "Mailbox";
+    if (!currentMailbox) return mailboxId?.split("@")[0] || m.mailbox();
     // Prefer settings.fromName > name > local part of email
     if (currentMailbox.settings?.fromName) {
       return currentMailbox.settings.fromName;
@@ -112,7 +114,7 @@ export default function Sidebar() {
   };
 
   return (
-    <KumoSidebar id="folder-sidebar" aria-label="Mailbox folders" className="max-md:w-5/6">
+    <KumoSidebar id="folder-sidebar" aria-label={m.mailbox_folders()} className="max-md:w-5/6">
       {/* Back + identity */}
       <KumoSidebar.Header className="h-16 flex-row items-center gap-4">
         <Button
@@ -124,13 +126,13 @@ export default function Sidebar() {
             closeSidebar();
           }}
           icon={<CaretLeftIcon size={16} />}
-          aria-label="Back to mailboxes"
+          aria-label={m.back_mailboxes()}
         />
         <div className="flex flex-1 flex-col">
           <div className="text-kumo-default truncate text-base font-semibold">{displayName}</div>
           <div className="text-kumo-subtle truncate text-sm">{currentMailbox?.email || mailboxId}</div>
         </div>
-        <KumoSidebar.Close className="md:hidden" />
+        <KumoSidebar.Close aria-label={m.close_sidebar()} className="md:hidden" />
       </KumoSidebar.Header>
 
       {/* Compose */}
@@ -141,15 +143,15 @@ export default function Sidebar() {
           onClick={() => startCompose(mailboxId)}
           className="w-full"
         >
-          Compose
+          {m.compose()}
         </Button>
       </div>
 
       {/* Navigation */}
       <KumoSidebar.Content>
-        <nav aria-label="Folders">
+        <nav aria-label={m.folders()}>
           <KumoSidebar.Menu>
-            {SYSTEM_FOLDER_LINKS.map((folder) => (
+            {getSystemFolderLinks().map((folder) => (
               <FolderLink
                 key={folder.id}
                 to={`/mailbox/${mailboxId}/emails/${folder.id}`}
@@ -163,9 +165,9 @@ export default function Sidebar() {
 
           <KumoSidebar.Group className="pt-5">
             <div className="flex items-center justify-between">
-              <KumoSidebar.GroupLabel>Folders</KumoSidebar.GroupLabel>
+              <KumoSidebar.GroupLabel>{m.folders()}</KumoSidebar.GroupLabel>
               <Tooltip
-                content="New folder"
+                content={m.new_folder()}
                 render={
                   <Button
                     variant="ghost"
@@ -173,7 +175,7 @@ export default function Sidebar() {
                     size="sm"
                     icon={<PlusIcon size={16} />}
                     onClick={() => setIsCreateFolderOpen(true)}
-                    aria-label="Create new folder"
+                    aria-label={m.create_new_folder()}
                   />
                 }
               />
@@ -193,16 +195,16 @@ export default function Sidebar() {
           </KumoSidebar.Group>
         </nav>
       </KumoSidebar.Content>
-      <KumoSidebar.ResizeHandle className="max-md:hidden" />
+      <KumoSidebar.ResizeHandle aria-label={m.resize_folders()} className="max-md:hidden" />
 
       {/* Create folder dialog */}
       <Dialog.Root open={isCreateFolderOpen} onOpenChange={setIsCreateFolderOpen}>
         <Dialog size="sm" className="p-6">
-          <Dialog.Title className="mb-4 text-base font-semibold">Create folder</Dialog.Title>
+          <Dialog.Title className="mb-4 text-base font-semibold">{m.create_folder()}</Dialog.Title>
           <form onSubmit={handleCreateFolder} className="space-y-4">
             <Input
-              label="Folder name"
-              placeholder="e.g. Projects"
+              label={m.folder_name()}
+              placeholder={m.folder_example()}
               value={newFolderName}
               onChange={(e) => setNewFolderName(e.target.value)}
               required
@@ -211,12 +213,12 @@ export default function Sidebar() {
               <Dialog.Close
                 render={(props) => (
                   <Button {...props} variant="secondary">
-                    Cancel
+                    {m.cancel()}
                   </Button>
                 )}
               />
               <Button type="submit" variant="primary" disabled={!newFolderName.trim()}>
-                Create
+                {m.create()}
               </Button>
             </div>
           </form>

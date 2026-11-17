@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
+import { m } from "shared/paraglide/messages.js";
+
 import DOMPurify from "dompurify";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -145,7 +147,7 @@ ul, ol { padding-left: 20px; margin: 4px 0; }
       className="block w-full border-0"
       style={autoSize ? { height: `${height}px` } : { height: "100%" }}
       sandbox="allow-scripts allow-popups allow-top-navigation-by-user-activation"
-      title="Email content"
+      title={m.email_content()}
     />
   );
 }

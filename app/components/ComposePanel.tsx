@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
+import { m } from "shared/paraglide/messages.js";
+
 import { Banner, Button, Input } from "@cloudflare/kumo";
 import { ArrowsInSimpleIcon, ArrowsOutSimpleIcon, MinusIcon, PaperPlaneTiltIcon, XIcon } from "@phosphor-icons/react";
 import { useEffect, useId, useRef } from "react";
@@ -45,13 +47,13 @@ export default function ComposePanel({ session }: { session: ComposeSession }) {
   const minimize = () => updateSession(session.id, { minimized: true });
   const originalId = session.options.originalEmail?.id || session.options.draftEmail?.in_reply_to;
   const saveStatus = form.saveFailed
-    ? "Couldn’t save"
+    ? m.save_failed()
     : form.isSavingDraft
-      ? "Saving…"
+      ? m.saving()
       : session.revision !== session.savedRevision
-        ? "Unsaved changes"
+        ? m.unsaved_changes()
         : session.hasSavedDraft
-          ? "Saved to Drafts"
+          ? m.saved_drafts()
           : "";
 
   return (
@@ -91,7 +93,7 @@ export default function ComposePanel({ session }: { session: ComposeSession }) {
                 type="button"
                 className="compose-window-drag-handle block w-full cursor-grab truncate text-left active:cursor-grabbing"
                 onKeyDown={windowState.onMoveKeyDown}
-                aria-label={`${form.subject || form.formTitle}. Use arrow keys to move the composer.`}
+                aria-label={m.move_composer_hint({ title: form.subject || form.formTitle })}
               >
                 {form.subject || form.formTitle}
               </button>
@@ -108,7 +110,7 @@ export default function ComposePanel({ session }: { session: ComposeSession }) {
               size="sm"
               icon={<MinusIcon size={18} />}
               onClick={minimize}
-              aria-label="Minimize composer"
+              aria-label={m.minimize_composer()}
             />
             <Button
               type="button"
@@ -117,7 +119,7 @@ export default function ComposePanel({ session }: { session: ComposeSession }) {
               size="sm"
               icon={session.expanded ? <ArrowsInSimpleIcon size={18} /> : <ArrowsOutSimpleIcon size={18} />}
               onClick={() => updateSession(session.id, { expanded: !session.expanded })}
-              aria-label={session.expanded ? "Restore composer size" : "Expand composer"}
+              aria-label={session.expanded ? m.restore_composer() : m.expand_composer()}
               aria-pressed={session.expanded}
               className="hidden @3xl:inline-flex"
             />
@@ -129,7 +131,7 @@ export default function ComposePanel({ session }: { session: ComposeSession }) {
               icon={<XIcon size={18} />}
               onClick={() => void form.closeCompose()}
               disabled={form.isSending || form.isSavingDraft}
-              aria-label="Save draft and close"
+              aria-label={m.save_close()}
             />
           </div>
         </div>
@@ -140,14 +142,11 @@ export default function ComposePanel({ session }: { session: ComposeSession }) {
           >
             <div className="space-y-3">
               {form.error && <Banner variant="error" description={form.error} />}
-              {recoveryUnavailable && (
-                <Banner
-                  variant="alert"
-                  description="Local recovery is unavailable. Keep this tab open until your draft is saved."
-                />
-              )}
+              {recoveryUnavailable && <Banner variant="alert" description={m.recovery_unavailable()} />}
               <div className="flex items-center justify-between gap-2 text-sm">
-                <span className="text-kumo-subtle truncate">From: {form.mailbox?.email || session.mailboxId}</span>
+                <span className="text-kumo-subtle truncate">
+                  {m.from_address({ email: form.mailbox?.email || session.mailboxId })}
+                </span>
                 {originalId && (
                   <button
                     type="button"
@@ -157,7 +156,7 @@ export default function ComposePanel({ session }: { session: ComposeSession }) {
                       minimize();
                     }}
                   >
-                    View original
+                    {m.view_original()}
                   </button>
                 )}
               </div>
@@ -165,7 +164,7 @@ export default function ComposePanel({ session }: { session: ComposeSession }) {
                 <div className="min-w-0 flex-1">
                   <Input
                     id={`${id}-to`}
-                    label="To"
+                    label={m.to()}
                     type="text"
                     placeholder="recipient@example.com"
                     size="sm"
@@ -182,7 +181,7 @@ export default function ComposePanel({ session }: { session: ComposeSession }) {
                     size="sm"
                     onClick={() => form.updateFields({ showCcBcc: true })}
                   >
-                    CC / BCC
+                    {m.cc_bcc()}
                   </Button>
                 )}
               </div>
@@ -190,14 +189,14 @@ export default function ComposePanel({ session }: { session: ComposeSession }) {
                 <>
                   <Input
                     id={`${id}-cc`}
-                    label="CC"
+                    label={m.cc()}
                     size="sm"
                     value={form.cc}
                     onChange={(event) => form.updateFields({ cc: event.target.value })}
                   />
                   <Input
                     id={`${id}-bcc`}
-                    label="BCC"
+                    label={m.bcc()}
                     size="sm"
                     value={form.bcc}
                     onChange={(event) => form.updateFields({ bcc: event.target.value })}
@@ -206,7 +205,7 @@ export default function ComposePanel({ session }: { session: ComposeSession }) {
               )}
               <Input
                 id={`${id}-subject`}
-                label="Subject"
+                label={m.subject()}
                 size="sm"
                 value={form.subject}
                 onChange={(event) => form.updateFields({ subject: event.target.value })}
@@ -229,7 +228,7 @@ export default function ComposePanel({ session }: { session: ComposeSession }) {
               onClick={() => void form.discard()}
               disabled={form.isSending || form.isSavingDraft}
             >
-              Discard
+              {m.discard()}
             </Button>
             <div className="flex min-w-0 items-center gap-2">
               <span className="text-kumo-subtle truncate text-xs" role="status">
@@ -243,7 +242,7 @@ export default function ComposePanel({ session }: { session: ComposeSession }) {
                   onClick={() => void form.handleSaveDraft()}
                   disabled={form.isSending}
                 >
-                  Retry
+                  {m.retry()}
                 </Button>
               )}
               <Button
@@ -254,7 +253,7 @@ export default function ComposePanel({ session }: { session: ComposeSession }) {
                 disabled={form.isSending || !session.fields || !form.mailbox}
                 icon={<PaperPlaneTiltIcon size={14} />}
               >
-                Send
+                {m.send()}
               </Button>
             </div>
           </div>

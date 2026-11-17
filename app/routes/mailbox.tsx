@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
+import { m } from "shared/paraglide/messages.js";
+
 import { Sidebar as KumoSidebar } from "@cloudflare/kumo";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Outlet, useParams, useSearchParams } from "react-router";
@@ -87,9 +89,9 @@ export default function MailboxRoute() {
           maxWidth={560}
           className="hidden h-full w-auto shrink-0 lg:flex"
         >
-          <KumoSidebar id="agent-sidebar" aria-label={aiFeatures.assistant ? "Agent" : "MCP"}>
+          <KumoSidebar id="agent-sidebar" aria-label={aiFeatures.assistant ? m.agent() : "MCP"}>
             <AgentSidebar assistantEnabled={aiFeatures.assistant} mcpEnabled={aiFeatures.mcp} />
-            <KumoSidebar.ResizeHandle aria-label="Resize agent sidebar" />
+            <KumoSidebar.ResizeHandle aria-label={m.resize_sidebar()} />
           </KumoSidebar>
         </KumoSidebar.Provider>
       )}

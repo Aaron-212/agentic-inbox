@@ -2,11 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
+import { m } from "shared/paraglide/messages.js";
+
 import { Button, Input, Sidebar as KumoSidebar, Tooltip, useSidebar } from "@cloudflare/kumo";
 import { GearSixIcon, ListIcon, MagnifyingGlassIcon, PlugsIcon, RobotIcon, XIcon } from "@phosphor-icons/react";
 import { type KeyboardEvent, useState } from "react";
 import { useLocation, useNavigate, useParams, useSearchParams } from "react-router";
 import { getAIFeatures } from "shared/ai-features";
+import LanguageSelect from "~/components/LanguageSelect";
 import { useMailbox } from "~/queries/mailboxes";
 import { useUIStore } from "~/hooks/useUIStore";
 
@@ -17,7 +20,7 @@ export default function Header() {
   const { data: mailbox } = useMailbox(mailboxId);
   const aiFeatures = getAIFeatures(mailbox?.settings);
   const showAgentSidebar = !!mailbox && (aiFeatures.assistant || aiFeatures.mcp);
-  const panelName = aiFeatures.assistant ? "agent panel" : "MCP panel";
+  const panelName = aiFeatures.assistant ? m.agent_panel() : m.mcp_panel();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -51,6 +54,8 @@ export default function Header() {
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Enter") {
+      e.preventDefault();
+      if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) return;
       performSearch();
     }
     if (e.key === "Escape") {
@@ -73,17 +78,17 @@ export default function Header() {
         size="sm"
         icon={<ListIcon size={20} />}
         onClick={toggleSidebar}
-        aria-label="Toggle sidebar"
+        aria-label={m.toggle_sidebar()}
         aria-expanded={isSidebarOpen}
         aria-controls="folder-sidebar"
         className="shrink-0 md:hidden"
       />
 
       <Tooltip
-        content={isDesktopSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+        content={isDesktopSidebarOpen ? m.collapse_sidebar() : m.expand_sidebar()}
         render={
           <KumoSidebar.Trigger
-            aria-label={isDesktopSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+            aria-label={isDesktopSidebarOpen ? m.collapse_sidebar() : m.expand_sidebar()}
             aria-expanded={isDesktopSidebarOpen}
             aria-controls="folder-sidebar"
             className="hidden shrink-0 md:inline-flex"
@@ -100,8 +105,8 @@ export default function Header() {
         <div className="relative flex flex-1 items-center">
           <Input
             className="w-full"
-            aria-label="Search emails"
-            placeholder="Search emails... (try from:name, is:unread, has:attachment)"
+            aria-label={m.search_emails()}
+            placeholder={m.search_placeholder()}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -111,14 +116,14 @@ export default function Header() {
               type="button"
               onClick={clearSearch}
               className="text-kumo-subtle hover:text-kumo-default hover:bg-kumo-tint absolute top-1/2 right-2 -translate-y-1/2 rounded p-0.5 transition-colors"
-              aria-label="Clear search"
+              aria-label={m.clear_search()}
             >
               <XIcon size={14} />
             </button>
           )}
         </div>
         <Tooltip
-          content="Search"
+          content={m.search()}
           side="bottom"
           render={
             <Button
@@ -126,7 +131,7 @@ export default function Header() {
               shape="square"
               icon={<MagnifyingGlassIcon size={20} />}
               onClick={performSearch}
-              aria-label="Search"
+              aria-label={m.search()}
             />
           }
         />
@@ -140,15 +145,16 @@ export default function Header() {
           size="sm"
           icon={<MagnifyingGlassIcon size={20} />}
           onClick={() => setIsSearchExpanded(true)}
-          aria-label="Search"
+          aria-label={m.search()}
           className="shrink-0 md:hidden"
         />
       )}
 
       <div className="ml-auto flex shrink-0 items-center gap-1">
+        <LanguageSelect />
         {showAgentSidebar && (
           <Tooltip
-            content={`${isAgentPanelOpen ? "Hide" : "Show"} ${panelName}`}
+            content={isAgentPanelOpen ? m.hide_panel({ panel: panelName }) : m.show_panel({ panel: panelName })}
             side="bottom"
             render={
               <Button
@@ -156,7 +162,7 @@ export default function Header() {
                 shape="square"
                 icon={aiFeatures.assistant ? <RobotIcon size={20} /> : <PlugsIcon size={20} />}
                 onClick={toggleAgentPanel}
-                aria-label={`Toggle ${panelName}`}
+                aria-label={m.toggle_panel({ panel: panelName })}
                 aria-expanded={isAgentPanelOpen}
                 aria-controls="agent-sidebar"
                 className="hidden lg:inline-flex"
@@ -165,7 +171,7 @@ export default function Header() {
           />
         )}
         <Tooltip
-          content="Settings"
+          content={m.settings()}
           side="bottom"
           render={
             <Button
@@ -175,7 +181,7 @@ export default function Header() {
               onClick={() =>
                 navigate(isSettingsActive ? `/mailbox/${mailboxId}/emails/inbox` : `/mailbox/${mailboxId}/settings`)
               }
-              aria-label="Settings"
+              aria-label={m.settings()}
             />
           }
         />
