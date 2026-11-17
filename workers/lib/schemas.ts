@@ -11,10 +11,11 @@
  * Zod schemas: used across route handlers to eliminate duplication.
  */
 import { z } from "zod";
+import type { EmailDelivery } from "shared/delivery";
 
 // ── TypeScript Interfaces ──────────────────────────────────────────
 
-export interface EmailMetadata {
+export interface EmailMetadata extends EmailDelivery {
   id: string;
   subject: string;
   sender: string;

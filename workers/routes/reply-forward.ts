@@ -3,7 +3,8 @@
 // Modified by Aaron Ruan.
 
 import type { Context } from "hono";
-import { sendEmail } from "../email-sender";
+import { submitStoredEmail } from "../email-sender";
+import { sendResult } from "./send-result";
 import { storeAttachments } from "../lib/attachments";
 import type { EmailFull } from "../lib/schemas";
 import {
@@ -88,29 +89,25 @@ export async function handleReplyEmail(c: AppContext) {
 
   await stub.markThreadRead(thread_id);
 
-  c.executionCtx.waitUntil(
-    sendEmail(c.env.EMAIL, {
-      to,
-      cc,
-      bcc,
-      from,
-      subject,
-      html,
-      text,
-      attachments: attachments?.map((att) => ({
-        content: att.content,
-        filename: att.filename,
-        type: att.type,
-        disposition: att.disposition,
-        contentId: att.contentId,
-      })),
-      headers: buildThreadingHeaders(originalMsgId, references),
-    }).catch((e) => {
-      console.error("Deferred reply delivery failed:", (e as Error).message);
-    }),
-  );
+  const outcome = await submitStoredEmail(stub, messageId, {
+    to,
+    cc,
+    bcc,
+    from,
+    subject,
+    html,
+    text,
+    attachments: attachments?.map((att) => ({
+      content: att.content,
+      filename: att.filename,
+      type: att.type,
+      disposition: att.disposition,
+      contentId: att.contentId,
+    })),
+    headers: buildThreadingHeaders(originalMsgId, references),
+  });
 
-  return c.json({ id: messageId, status: "sent" }, 202);
+  return sendResult(c, messageId, outcome);
 }
 
 export async function handleForwardEmail(c: AppContext) {
@@ -173,26 +170,22 @@ export async function handleForwardEmail(c: AppContext) {
     attachmentData,
   );
 
-  c.executionCtx.waitUntil(
-    sendEmail(c.env.EMAIL, {
-      to,
-      cc,
-      bcc,
-      from,
-      subject,
-      html,
-      text,
-      attachments: attachments?.map((att) => ({
-        content: att.content,
-        filename: att.filename,
-        type: att.type,
-        disposition: att.disposition,
-        contentId: att.contentId,
-      })),
-    }).catch((e) => {
-      console.error("Deferred forward delivery failed:", (e as Error).message);
-    }),
-  );
+  const outcome = await submitStoredEmail(stub, messageId, {
+    to,
+    cc,
+    bcc,
+    from,
+    subject,
+    html,
+    text,
+    attachments: attachments?.map((att) => ({
+      content: att.content,
+      filename: att.filename,
+      type: att.type,
+      disposition: att.disposition,
+      contentId: att.contentId,
+    })),
+  });
 
-  return c.json({ id: messageId, status: "sent" }, 202);
+  return sendResult(c, messageId, outcome);
 }

@@ -28,7 +28,7 @@ import {
 } from "./email-helpers";
 import { verifyDraft } from "./ai";
 import { getMailboxAIModel } from "./ai-settings";
-import { sendEmail } from "../email-sender";
+import { submissionErrorMessage, submitStoredEmail } from "../email-sender";
 import { Folders } from "../../shared/folders";
 import type { Env } from "../types";
 
@@ -363,7 +363,10 @@ export async function toolSendReply(
     subject: string;
     bodyHtml: string;
   },
-): Promise<{ status: "sent"; messageId: string; message: string } | { error: string }> {
+): Promise<
+  | { status: "accepted"; messageId: string; providerMessageId: string; message: string }
+  | { error: string; code?: string | null }
+> {
   const stub = getMailboxStub(env, mailboxId);
 
   // Check send rate limit
@@ -398,19 +401,6 @@ export async function toolSendReply(
   });
   const fullBodyHtml = sanitizedBody + quotedBlock;
 
-  try {
-    await sendEmail(env.EMAIL, {
-      to: params.to,
-      from: mailboxId,
-      subject: params.subject,
-      html: fullBodyHtml,
-      headers: buildThreadingHeaders(originalMsgId, references),
-    });
-  } catch (e) {
-    console.error("Email send failed:", (e as Error).message);
-    return { error: `Failed to send reply: ${(e as Error).message}` };
-  }
-
   await stub.createEmail(
     Folders.SENT,
     {
@@ -428,7 +418,22 @@ export async function toolSendReply(
     [],
   );
 
-  return { status: "sent", messageId, message: `Reply sent to ${params.to}` };
+  const outcome = await submitStoredEmail(stub, messageId, {
+    to: params.to,
+    from: mailboxId,
+    subject: params.subject,
+    html: fullBodyHtml,
+    headers: buildThreadingHeaders(originalMsgId, references),
+  });
+  if (outcome.status !== "accepted") {
+    return { error: submissionErrorMessage(outcome), code: outcome.code };
+  }
+  return {
+    status: "accepted",
+    messageId,
+    providerMessageId: outcome.messageId,
+    message: `Reply accepted for delivery to ${params.to}`,
+  };
 }
 
 // ── send_email ─────────────────────────────────────────────────────
@@ -441,7 +446,10 @@ export async function toolSendEmail(
     subject: string;
     bodyHtml: string;
   },
-): Promise<{ status: "sent"; messageId: string; message: string } | { error: string }> {
+): Promise<
+  | { status: "accepted"; messageId: string; providerMessageId: string; message: string }
+  | { error: string; code?: string | null }
+> {
   const stub = getMailboxStub(env, mailboxId);
 
   // Check send rate limit
@@ -463,18 +471,6 @@ export async function toolSendEmail(
     return { error: "Draft verification failed — refusing to send unverified content. Please try again." };
   }
 
-  try {
-    await sendEmail(env.EMAIL, {
-      to: params.to,
-      from: mailboxId,
-      subject: params.subject,
-      html: sanitizedBody,
-    });
-  } catch (e) {
-    console.error("Email send failed:", (e as Error).message);
-    return { error: `Failed to send email: ${(e as Error).message}` };
-  }
-
   await stub.createEmail(
     Folders.SENT,
     {
@@ -492,5 +488,19 @@ export async function toolSendEmail(
     [],
   );
 
-  return { status: "sent", messageId, message: `Email sent to ${params.to}` };
+  const outcome = await submitStoredEmail(stub, messageId, {
+    to: params.to,
+    from: mailboxId,
+    subject: params.subject,
+    html: sanitizedBody,
+  });
+  if (outcome.status !== "accepted") {
+    return { error: submissionErrorMessage(outcome), code: outcome.code };
+  }
+  return {
+    status: "accepted",
+    messageId,
+    providerMessageId: outcome.messageId,
+    message: `Email accepted for delivery to ${params.to}`,
+  };
 }

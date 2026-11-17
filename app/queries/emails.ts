@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "~/services/api";
 import type { Email } from "~/types";
 import { queryKeys } from "./keys";
+import { isDeliveryPending } from "shared/delivery";
 
 // ---------- Types ----------
 
@@ -46,6 +47,7 @@ export function useEmail(mailboxId: string | undefined, emailId: string | undefi
     queryKey: mailboxId && emailId ? queryKeys.emails.detail(mailboxId, emailId) : ["emails", "_disabled_detail"],
     queryFn: () => api.getEmail(mailboxId!, emailId!) as Promise<Email>,
     enabled: !!mailboxId && !!emailId,
+    refetchInterval: (query) => (query.state.data && isDeliveryPending(query.state.data) ? 15_000 : false),
   });
 }
 
@@ -56,7 +58,7 @@ export function useThreadReplies(mailboxId: string | undefined, threadId: string
     queryKey: mailboxId && threadId ? queryKeys.emails.thread(mailboxId, threadId) : ["emails", "_disabled_thread"],
     queryFn: async ({ signal }) => {
       // Single request returns all thread emails with full bodies +
-      // attachments. Eliminates the previous N+1 pattern that fired
+      // attachments and delivery outcomes. Eliminates the previous N+1 pattern that fired
       // a separate getEmail call per thread message.
       const emails = (await api.getThread(mailboxId!, threadId!, { signal })) as Email[];
 
@@ -69,6 +71,7 @@ export function useThreadReplies(mailboxId: string | undefined, threadId: string
       return emails;
     },
     enabled: !!mailboxId && !!threadId,
+    refetchInterval: (query) => (query.state.data?.some(isDeliveryPending) ? 15_000 : false),
   });
 }
 
@@ -98,7 +101,7 @@ export function useSendEmail() {
   const invalidate = useInvalidateEmailData();
   return useMutation({
     mutationFn: ({ mailboxId, email }: { mailboxId: string; email: unknown }) => api.sendEmail(mailboxId, email),
-    onSuccess: (_data, { mailboxId }) => invalidate(mailboxId),
+    onSettled: (_data, _error, { mailboxId }) => invalidate(mailboxId),
   });
 }
 
@@ -227,7 +230,7 @@ export function useReplyToEmail() {
   return useMutation({
     mutationFn: ({ mailboxId, emailId, email }: { mailboxId: string; emailId: string; email: unknown }) =>
       api.replyToEmail(mailboxId, emailId, email),
-    onSuccess: (_data, { mailboxId }) => invalidate(mailboxId),
+    onSettled: (_data, _error, { mailboxId }) => invalidate(mailboxId),
   });
 }
 
@@ -236,6 +239,6 @@ export function useForwardEmail() {
   return useMutation({
     mutationFn: ({ mailboxId, emailId, email }: { mailboxId: string; emailId: string; email: unknown }) =>
       api.forwardEmail(mailboxId, emailId, email),
-    onSuccess: (_data, { mailboxId }) => invalidate(mailboxId),
+    onSettled: (_data, _error, { mailboxId }) => invalidate(mailboxId),
   });
 }

@@ -15,6 +15,7 @@ import EmailAttachmentList from "~/components/EmailAttachmentList";
 import EmailIframe from "~/components/EmailIframe";
 import { formatDetailDate, formatShortDate, rewriteInlineImages, stripHtml } from "~/lib/utils";
 import type { Email } from "~/types";
+import DeliveryStatus from "./DeliveryStatus";
 
 interface ThreadMessageProps {
   email: Email;
@@ -85,6 +86,11 @@ export default function ThreadMessage({
           </div>
           <CaretDownIcon size={14} className="text-kumo-subtle shrink-0" />
         </button>
+        {email.send_status && (
+          <div className="px-4 pb-3">
+            <DeliveryStatus email={email} />
+          </div>
+        )}
       </div>
     );
   }
@@ -132,7 +138,8 @@ export default function ThreadMessage({
           </div>
         </div>
 
-        <div className="md:ml-[42px]">
+        <DeliveryStatus email={email} />
+        <div className="mt-3 md:ml-[42px]">
           <EmailIframe
             body={rewriteInlineImages(email.body || "", mailboxId || "", email.id, email.attachments)}
             autoSize

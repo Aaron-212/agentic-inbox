@@ -6,6 +6,7 @@ import EmailAttachmentList from "~/components/EmailAttachmentList";
 import EmailIframe from "~/components/EmailIframe";
 import { formatDetailDate, rewriteInlineImages } from "~/lib/utils";
 import type { Email } from "~/types";
+import DeliveryStatus from "./DeliveryStatus";
 
 interface SingleMessageViewProps {
   email: Email;
@@ -29,6 +30,7 @@ export default function SingleMessageView({ email, mailboxId, onPreviewImage }: 
           </div>
           <span className="text-kumo-subtle shrink-0 text-xs">{formatDetailDate(email.date)}</span>
         </div>
+        <DeliveryStatus email={email} />
       </div>
 
       <div className="min-h-0 flex-1">

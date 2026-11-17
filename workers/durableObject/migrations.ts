@@ -175,4 +175,26 @@ export const mailboxMigrations: Migration[] = [
     name: "11_add_ai_summary",
     sql: `ALTER TABLE emails ADD COLUMN ai_summary TEXT;`,
   },
+  {
+    name: "12_add_delivery_tracking",
+    sql: `
+      ALTER TABLE emails ADD COLUMN send_status TEXT;
+      ALTER TABLE emails ADD COLUMN provider_message_id TEXT;
+      ALTER TABLE emails ADD COLUMN send_error_code TEXT;
+      ALTER TABLE emails ADD COLUMN send_error TEXT;
+      CREATE UNIQUE INDEX idx_emails_provider_message_id ON emails(provider_message_id);
+      CREATE TABLE email_deliveries (
+        provider_message_id TEXT NOT NULL,
+        recipient TEXT NOT NULL,
+        status TEXT NOT NULL,
+        reason TEXT,
+        smtp_code TEXT,
+        updated_at INTEGER NOT NULL,
+        terminal INTEGER NOT NULL,
+        received_at INTEGER NOT NULL,
+        PRIMARY KEY (provider_message_id, recipient)
+      );
+      CREATE INDEX idx_email_deliveries_received_at ON email_deliveries(received_at);
+    `,
+  },
 ];

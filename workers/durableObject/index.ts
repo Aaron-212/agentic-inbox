@@ -10,6 +10,9 @@ import * as schema from "../db/schema";
 import { Folders } from "../../shared/folders";
 import type { Env } from "../types";
 import { applyMigrations, mailboxMigrations } from "./migrations";
+import { DeliveryStore } from "./delivery";
+import type { SendEmailParams } from "../email-sender";
+import type { DeliveryEvent } from "../delivery-events";
 
 /**
  * SQL expression to normalize email subjects by stripping common
@@ -95,11 +98,21 @@ interface AttachmentData {
 export class MailboxDO extends DurableObject<Env> {
   declare __DURABLE_OBJECT_BRAND: never;
   db: ReturnType<typeof drizzle>;
+  private delivery: DeliveryStore;
 
   constructor(state: DurableObjectState, env: Env) {
     super(state, env);
     this.db = drizzle(this.ctx.storage, { schema });
     applyMigrations(this.ctx.storage.sql, mailboxMigrations, this.ctx.storage);
+    this.delivery = new DeliveryStore(this.ctx.storage, env.EMAIL);
+  }
+
+  async sendStoredEmail(id: string, params: SendEmailParams) {
+    return this.delivery.send(id, params);
+  }
+
+  async recordDeliveryEvent(event: DeliveryEvent) {
+    this.delivery.record(event);
   }
 
   // ── Email CRUD (Drizzle) ───────────────────────────────────────
@@ -434,12 +447,13 @@ export class MailboxDO extends DurableObject<Env> {
       read: !!email.read,
       starred: !!email.starred,
       attachments: emailAttachments,
+      deliveries: this.delivery.get(email.provider_message_id),
     };
   }
 
   /**
    * Fetch all emails in a thread with full bodies and attachments in
-   * two queries (one for emails, one for attachments) instead of
+   * three queries (emails, attachments, and delivery outcomes) instead of
    * N+1 individual getEmail calls.
    */
   async getThreadEmails(threadId: string) {
@@ -465,11 +479,13 @@ export class MailboxDO extends DurableObject<Env> {
       attachmentsByEmail.set(att.email_id, list);
     }
 
+    const deliveries = this.delivery.getForThread(threadId);
     return emailRows.map((email) => ({
       ...email,
       read: !!email.read,
       starred: !!email.starred,
       attachments: attachmentsByEmail.get(email.id) || [],
+      deliveries: deliveries.get(email.provider_message_id) ?? [],
     }));
   }
 
@@ -553,6 +569,7 @@ export class MailboxDO extends DurableObject<Env> {
   }
 
   async cleanupExpiredEmails(now: number) {
+    this.delivery.cleanup(now);
     const day = 24 * 60 * 60 * 1000;
     // Selection and deletion are synchronous, so a concurrent restore cannot race the expiry check.
     const expired = this.ctx.storage.transactionSync(() => {
@@ -925,6 +942,7 @@ export class MailboxDO extends DurableObject<Env> {
         thread_id: email.thread_id ?? null,
         message_id: email.message_id ?? null,
         raw_headers: email.raw_headers ?? null,
+        send_status: isSent ? "sending" : null,
       })
       .run();
 

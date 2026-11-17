@@ -11,6 +11,7 @@ import { EmailMCP } from "./mcp";
 import type { Env } from "./types";
 import { cleanupMailboxes } from "./lib/retention";
 import { isMailboxAIFeatureEnabled } from "./lib/ai-settings";
+import { consumeDeliveryEvents } from "./delivery-events";
 
 export { MailboxDO } from "./durableObject";
 export { EmailAgent } from "./agent";
@@ -101,6 +102,7 @@ app.all("*", (c) => {
 // Export the Hono app as the default export with an email handler
 export default {
   fetch: app.fetch,
+  queue: consumeDeliveryEvents,
   async scheduled(controller: ScheduledController, env: Env) {
     await cleanupMailboxes(env, controller.scheduledTime);
   },

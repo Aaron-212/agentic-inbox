@@ -222,7 +222,7 @@ export async function getFullEmail(stub: DurableObjectStub<MailboxDO>, emailId: 
 
 /**
  * Fetch all emails in a thread with full bodies in a single DO call.
- * Uses `getThreadEmails` which runs 2 SQL queries (emails + attachments)
+ * Uses `getThreadEmails` which batches emails, attachments, and delivery outcomes
  * instead of the previous N+1 pattern (1 list query + N getEmail calls).
  */
 export async function getFullThread(stub: DurableObjectStub<MailboxDO>, threadId: string) {

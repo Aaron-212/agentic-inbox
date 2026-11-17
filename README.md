@@ -68,11 +68,48 @@ mise exec -- pnpm run dev
 
 ### Deploy
 
+Before your first deployment with delivery tracking, create the delivery queue and its dead-letter queue:
+
+```bash
+mise exec -- pnpm exec wrangler queues create agentic-inbox-delivery
+mise exec -- pnpm exec wrangler queues create agentic-inbox-delivery-dlq
+```
+
 Deploy to Cloudflare:
 
 ```bash
 mise exec -- pnpm run deploy
 ```
+
+### Track email delivery
+
+To receive delivery updates, configure an [Email Sending event subscription](https://developers.cloudflare.com/email-service/reference/event-subscriptions/)
+for each domain or subdomain you send from:
+
+1. In the Cloudflare dashboard, open **Queues** and select `agentic-inbox-delivery`.
+2. Open **Subscriptions** and select **Subscribe to events**.
+3. Select the Email Sending source and your sending domain. Subscribe to `message.delivered`, `message.deferred`,
+   `message.bounced`, `message.failed`, `message.rejected`, and `message.complained`.
+4. Save the subscription. Repeat for each additional sending domain or subdomain.
+5. Send an email from the app and open its message in **Sent**. Expand the delivery status to inspect each recipient's
+   outcome, server response, and Cloudflare message ID. Compare it with the Email Service **Activity log**.
+
+The app reports immediate submission errors in the composer and keeps the draft. Accepted submissions appear as
+**Queued for delivery** until delivery events arrive. Without the subscription, messages remain queued in the app even
+if Cloudflare has delivered them. Messages sent before delivery tracking was enabled have no tracked status.
+
+Delivery updates distinguish temporary delays, permanent bounces, rejections, internal failures, and spam complaints.
+The message view refreshes pending outcomes every 15 seconds while open. Acceptance by the recipient's mail server
+doesn't confirm inbox placement or that the recipient read the email.
+
+If a request times out or its outcome can't be confirmed, check **Sent** and Cloudflare's **Activity log** before
+retrying to avoid sending a duplicate. Submission failures are also retained in **Sent** with their error details.
+Agent and MCP sends use the same tracking and return `accepted` after provider acceptance.
+
+Queue processing retries failed events up to 10 times, then moves them to `agentic-inbox-delivery-dlq` for inspection.
+Duplicate events are safe to replay, and nonterminal events cannot overwrite a terminal delivery outcome. Events that
+arrive before the provider message ID is stored are matched when the send completes. The daily cleanup removes
+unmatched delivery records older than 30 days.
 
 ## Prerequisites
 

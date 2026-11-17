@@ -323,7 +323,11 @@ export function useComposeForm(session: ComposeSession) {
         await forwardMutation.mutateAsync({ mailboxId, emailId: originalId, email: emailData });
       else await sendEmailMutation.mutateAsync({ mailboxId, email: emailData });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to send email.");
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : "Send status unknown. Check Sent and Cloudflare's Activity log before retrying.",
+      );
       activeOperations.delete(session.id);
       setIsSending(false);
       return;
@@ -331,14 +335,14 @@ export function useComposeForm(session: ComposeSession) {
     // Sending succeeded: cleanup failure must never invite sending the same message again.
     const latest = useComposeStore.getState().sessions.find((item) => item.id === session.id);
     useComposeStore.getState().remove(session.id);
-    toastManager.add({ title: "Email sent!" });
+    toastManager.add({ title: "Email accepted for delivery" });
     activeOperations.delete(session.id);
     if (latest && (latest.hasSavedDraft || latest.revision > 0)) {
       try {
         await deleteEmailMutation.mutateAsync({ mailboxId, id: latest.draftId });
       } catch (err) {
         if (!(err instanceof ApiError && err.status === 404))
-          toastManager.add({ title: "Email sent, but its saved draft could not be removed.", variant: "error" });
+          toastManager.add({ title: "Email accepted, but its saved draft could not be removed.", variant: "error" });
       }
     }
   };

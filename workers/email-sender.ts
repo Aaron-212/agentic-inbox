@@ -10,6 +10,28 @@
  * See: https://developers.cloudflare.com/email-service/api/send-emails/workers-api/
  */
 
+import type { SendOutcome } from "shared/delivery";
+
+export function submissionErrorMessage(outcome: Exclude<SendOutcome, { status: "accepted" }>) {
+  const detail = outcome.code ? `${outcome.code}: ${outcome.error}` : outcome.error;
+  return outcome.status === "unknown"
+    ? `Send status unknown. Check Sent and Cloudflare's Activity log before retrying. ${detail}`
+    : `Failed to send email. ${detail}`;
+}
+
+export async function submitStoredEmail(
+  mailbox: { sendStoredEmail: (id: string, params: SendEmailParams) => Promise<SendOutcome> },
+  id: string,
+  params: SendEmailParams,
+): Promise<SendOutcome> {
+  try {
+    return await mailbox.sendStoredEmail(id, params);
+  } catch (error) {
+    console.error("Email submission outcome unavailable", { emailId: id, error });
+    return { status: "unknown", code: null, error: "Unable to confirm the submission outcome." };
+  }
+}
+
 export interface SendEmailParams {
   to: string | string[];
   from: string | { email: string; name: string };

@@ -3,6 +3,7 @@
 // Modified by Aaron Ruan.
 
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import type { SendStatus } from "shared/delivery";
 
 export const folders = sqliteTable("folders", {
   id: text("id").primaryKey(),
@@ -31,6 +32,10 @@ export const emails = sqliteTable("emails", {
   thread_id: text("thread_id"),
   message_id: text("message_id"),
   raw_headers: text("raw_headers"),
+  send_status: text("send_status").$type<SendStatus>(),
+  provider_message_id: text("provider_message_id"),
+  send_error_code: text("send_error_code"),
+  send_error: text("send_error"),
   folder_entered_at: integer("folder_entered_at"),
 });
 

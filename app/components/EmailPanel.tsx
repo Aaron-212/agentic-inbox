@@ -13,7 +13,7 @@ import EmailPanelToolbar from "~/components/email-panel/EmailPanelToolbar";
 import SingleMessageView from "~/components/email-panel/SingleMessageView";
 import ThreadMessage from "~/components/email-panel/ThreadMessage";
 import { splitEmailList, toEmailListValue } from "~/lib/utils";
-import api from "~/services/api";
+import api, { ApiError } from "~/services/api";
 import {
   useDeleteEmail,
   useEmail,
@@ -207,6 +207,7 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
       return;
     }
     setIsSending(true);
+    let accepted = false;
     try {
       if (!target.recipient || !target.subject) {
         try {
@@ -242,11 +243,16 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
       else if (target.in_reply_to)
         await replyMut.mutateAsync({ mailboxId, emailId: target.in_reply_to, email: emailData });
       else await sendEmailMut.mutateAsync({ mailboxId, email: emailData });
+      accepted = true;
       await deleteEmailMut.mutateAsync({ mailboxId, id: target.id });
-      toastManager.add({ title: "Email sent!" });
+      toastManager.add({ title: "Email accepted for delivery" });
       if (isDraftFolder) closePanel();
     } catch (err) {
-      const message = (err instanceof Error ? err.message : null) || "Failed to send email.";
+      const message = accepted
+        ? "Email accepted, but its saved draft could not be removed. Do not resend it."
+        : err instanceof ApiError
+          ? err.message
+          : "Send status unknown. Check Sent and Cloudflare's Activity log before retrying.";
       toastManager.add({ title: message, variant: "error" });
     } finally {
       setIsSending(false);

@@ -4,6 +4,7 @@
 
 import type { AIFeatureSettings } from "shared/ai-features";
 import type { AIModelSettings } from "shared/ai-model";
+import type { EmailDelivery } from "shared/delivery";
 
 export interface SignatureSettings {
   enabled: boolean;
@@ -26,7 +27,7 @@ export interface Mailbox {
   settings?: MailboxSettings;
 }
 
-export interface Email {
+export interface Email extends EmailDelivery {
   id: string;
   thread_id?: string | null;
   folder_id?: string | null;
