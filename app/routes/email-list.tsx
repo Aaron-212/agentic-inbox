@@ -92,6 +92,7 @@ function EmailListSkeleton() {
               <div className="bg-kumo-fill h-3 w-12 rounded" />
             </div>
             <div className="bg-kumo-fill h-2.5 w-3/4 rounded" />
+            <div className="bg-kumo-fill h-2.5 w-full rounded" />
           </div>
         </div>
       ))}
@@ -333,7 +334,7 @@ export default function EmailListRoute() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <span
-                        className={`min-w-0 flex-1 text-sm wrap-anywhere ${hasUnread(email) ? "text-kumo-default font-semibold" : "text-kumo-subtle"}`}
+                        className={`min-w-0 flex-1 truncate text-sm ${hasUnread(email) ? "text-kumo-default font-semibold" : "text-kumo-subtle"}`}
                       >
                         {formatParticipants(email)}
                       </span>
@@ -359,8 +360,8 @@ export default function EmailListRoute() {
                       <span className={hasUnread(email) ? "text-kumo-default font-medium" : "text-kumo-subtle"}>
                         {email.subject}
                       </span>
-                      {snippet && <span className="text-kumo-subtle font-normal"> &mdash; {snippet}</span>}
                     </div>
+                    {snippet && <div className="text-kumo-subtle mt-0.5 truncate text-sm">{snippet}</div>}
                   </div>
 
                   {/* Hover actions */}
