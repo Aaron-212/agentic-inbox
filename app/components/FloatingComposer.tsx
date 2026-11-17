@@ -2,8 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
+import { Loader } from "@cloudflare/kumo";
+import { lazy, Suspense } from "react";
 import { useComposeStore } from "~/hooks/useComposeStore";
-import ComposePanel from "./ComposePanel";
+
+const ComposePanel = lazy(() => import("./ComposePanel"));
 
 export default function FloatingComposer() {
   const sessions = useComposeStore((state) => state.sessions);
@@ -16,9 +19,17 @@ export default function FloatingComposer() {
   return (
     <div className="pointer-events-none absolute inset-0 z-20">
       <div className={`absolute inset-0 ${hasMinimized && !hasExpandedComposer ? "@3xl:bottom-16" : ""}`}>
-        {sessions.map((session) => (
-          <ComposePanel key={session.id} session={session} />
-        ))}
+        <Suspense
+          fallback={
+            <div role="status" aria-label="Loading composer" className="flex h-full items-center justify-center">
+              <Loader size="base" />
+            </div>
+          }
+        >
+          {sessions.map((session) => (
+            <ComposePanel key={session.id} session={session} />
+          ))}
+        </Suspense>
       </div>
       <div
         className={`pointer-events-auto absolute inset-x-0 bottom-0 gap-2 overflow-x-auto px-2 ${hasExpandedComposer ? "hidden" : hasOpenComposer ? "hidden @3xl:flex" : "flex"}`}

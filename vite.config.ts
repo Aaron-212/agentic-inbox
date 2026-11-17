@@ -12,4 +12,22 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
+  environments: {
+    client: {
+      build: {
+        rolldownOptions: {
+          output: {
+            codeSplitting: {
+              groups: [
+                {
+                  name: "prosemirror",
+                  test: /node_modules\/prosemirror-[^/]+\//,
+                },
+              ],
+            },
+          },
+        },
+      },
+    },
+  },
 });
