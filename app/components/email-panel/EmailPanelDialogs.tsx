@@ -134,7 +134,7 @@ export default function EmailPanelDialogs({
         <Dialog size="lg">
           <Dialog.Title>{previewImage?.filename}</Dialog.Title>
           {previewImage && (
-            <div className="bg-kumo-tint/30 mt-4 flex min-h-[200px] flex-col items-center justify-center rounded-lg p-4">
+            <div className="bg-kumo-tint/30 mt-4 flex min-h-50 flex-col items-center justify-center rounded-lg p-4">
               <img
                 src={previewImage.url}
                 alt={previewImage.filename}

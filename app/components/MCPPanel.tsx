@@ -58,11 +58,11 @@ export default function MCPPanel() {
   return (
     <div className="flex h-full flex-col">
       {/* Content */}
-      <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
+      <div className="flex-1 space-y-4 overflow-y-auto p-4 ">
         {/* Intro */}
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <div className="bg-kumo-brand/10 flex h-10 w-10 items-center justify-center rounded-xl">
+            <div className="bg-kumo-brand/10 flex size-10  items-center justify-center rounded-xl">
               <PlugsIcon size={20} weight="duotone" className="text-kumo-brand" />
             </div>
             <div>
@@ -70,7 +70,7 @@ export default function MCPPanel() {
               <p className="text-kumo-subtle text-xs">{m.mcp_full_name()}</p>
             </div>
           </div>
-          <p className="text-kumo-subtle text-xs leading-relaxed">{m.mcp_intro()}</p>
+          <p className="text-kumo-subtle text-xs/relaxed ">{m.mcp_intro()}</p>
         </div>
 
         {/* MCP URL */}

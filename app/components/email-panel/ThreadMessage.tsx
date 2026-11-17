@@ -38,7 +38,7 @@ interface ThreadMessageProps {
 function Avatar({ isDraft, isSelf, sender }: { isDraft?: boolean; isSelf: boolean; sender: string }) {
   return (
     <div
-      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+      className={`flex size-8  shrink-0 items-center justify-center rounded-full text-xs font-bold ${
         isDraft
           ? "bg-kumo-fill text-kumo-subtle"
           : isSelf
@@ -99,7 +99,7 @@ export default function ThreadMessage({
 
   return (
     <div className={`group/thread-msg ${containerClassName}`}>
-      <div className="px-4 py-4 md:px-6">
+      <div className="p-4  md:px-6">
         <div className="mb-3 flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2.5">
             <button type="button" onClick={onToggleExpand} className="shrink-0" aria-label={m.collapse_message()}>
@@ -129,7 +129,7 @@ export default function ThreadMessage({
                     icon={<CodeIcon size={14} />}
                     onClick={onViewSource}
                     aria-label={m.view_source()}
-                    className="!h-6 !w-6 transition-opacity"
+                    className="size-6!  transition-opacity"
                   />
                 }
               />
@@ -141,7 +141,7 @@ export default function ThreadMessage({
         </div>
 
         <DeliveryStatus email={email} />
-        <div className="mt-3 md:ml-[42px]">
+        <div className="mt-3 md:ml-10.5">
           <EmailIframe
             body={rewriteInlineImages(email.body || "", mailboxId || "", email.id, email.attachments)}
             autoSize
@@ -149,7 +149,7 @@ export default function ThreadMessage({
         </div>
 
         {isDraft && (onSendDraft || onEditDraft || onDeleteDraft) && (
-          <div className="mt-3 flex gap-2 md:ml-[42px]">
+          <div className="mt-3 flex gap-2 md:ml-10.5">
             {onSendDraft && (
               <Button
                 variant="primary"
@@ -192,7 +192,7 @@ export default function ThreadMessage({
           emailId={email.id}
           attachments={email.attachments}
           onPreviewImage={onPreviewImage}
-          className="mt-3 md:ml-[42px]"
+          className="mt-3 md:ml-10.5"
         />
       </div>
     </div>

@@ -157,7 +157,7 @@ export default function HomeRoute() {
                   idx > 0 ? "border-kumo-line border-t" : ""
                 }`}
               >
-                <div className="bg-kumo-fill text-kumo-default flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold">
+                <div className="bg-kumo-fill text-kumo-default flex size-10  shrink-0 items-center justify-center rounded-full text-sm font-bold">
                   {account.name.charAt(0).toUpperCase()}
                 </div>
                 <div className="min-w-0 flex-1">

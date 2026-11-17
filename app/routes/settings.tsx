@@ -78,7 +78,7 @@ export default function SettingsRoute() {
   const isCustomPrompt = agentPrompt.trim().length > 0;
 
   return (
-    <div className="h-full overflow-y-auto px-4 py-4 md:px-8 md:py-6">
+    <div className="h-full overflow-y-auto p-4  md:px-8 md:py-6">
       <h1 className="text-kumo-default mb-6 text-lg font-semibold">{m.settings()}</h1>
 
       <form
@@ -213,7 +213,7 @@ export default function SettingsRoute() {
               onChange={(e) => setAgentPrompt(e.target.value)}
               placeholder={m.prompt_placeholder()}
               rows={12}
-              className="w-full resize-none font-mono text-xs leading-relaxed"
+              className="w-full resize-none font-mono text-xs/relaxed "
             />
             <p id="agent-prompt-help" className="text-kumo-subtle mt-2 text-xs">
               {m.prompt_help()}

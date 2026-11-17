@@ -16,7 +16,7 @@ export default function DeliveryStatus({ email }: { email: Email }) {
   if (!email.send_status) return null;
   if (email.send_status !== "accepted") {
     return (
-      <p className="text-kumo-subtle mt-2 text-xs break-words" role="status">
+      <p className="text-kumo-subtle mt-2 text-xs wrap-break-word" role="status">
         {email.send_status === "sending"
           ? m.sending_status()
           : email.send_status === "failed"

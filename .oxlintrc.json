@@ -3,5 +3,14 @@
   "plugins": ["eslint", "typescript", "unicorn", "oxc", "react"],
   "categories": {
     "correctness": "error"
+  },
+  "jsPlugins": ["eslint-plugin-better-tailwindcss"],
+  "settings": {
+    "better-tailwindcss": {
+      "entryPoint": "app/index.css"
+    }
+  },
+  "rules": {
+    "better-tailwindcss/enforce-canonical-classes": ["warn", { "rootFontSize": 16 }]
   }
 }

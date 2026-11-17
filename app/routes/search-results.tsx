@@ -153,7 +153,7 @@ function SearchResults({ mailboxId, urlQuery }: { mailboxId: string | undefined;
                     className={`group border-kumo-line flex w-full cursor-pointer items-center gap-3 border-b px-4 py-2.5 text-left transition-colors md:px-5 md:py-3 ${isPanelOpen ? "md:px-4 md:py-2.5" : ""} ${isSelected ? "bg-kumo-tint" : "hover:bg-kumo-tint"}`}
                   >
                     <div className="flex w-2.5 shrink-0 justify-center">
-                      {!email.read && <div className="bg-kumo-brand h-2 w-2 rounded-full" />}
+                      {!email.read && <div className="bg-kumo-brand size-2  rounded-full" />}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">

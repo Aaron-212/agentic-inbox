@@ -52,7 +52,7 @@ export default function EmailAttachmentList({
                 className="border-kumo-line hover:bg-kumo-tint flex items-center gap-2 rounded-md border px-3 py-2 text-left text-sm transition-colors"
               >
                 <ImageIcon size={16} className="text-kumo-subtle shrink-0" />
-                <span className="text-kumo-default max-w-[140px] truncate font-medium">{attachment.filename}</span>
+                <span className="text-kumo-default max-w-35 truncate font-medium">{attachment.filename}</span>
                 <span className="text-kumo-subtle">{formatBytes(attachment.size)}</span>
               </button>
             );
@@ -67,7 +67,7 @@ export default function EmailAttachmentList({
               className="border-kumo-line hover:bg-kumo-tint flex items-center gap-2 rounded-md border px-3 py-2 text-sm no-underline transition-colors"
             >
               <FileIcon size={16} className="text-kumo-subtle shrink-0" />
-              <span className="text-kumo-default max-w-[140px] truncate font-medium">{attachment.filename}</span>
+              <span className="text-kumo-default max-w-35 truncate font-medium">{attachment.filename}</span>
               <span className="text-kumo-subtle">{formatBytes(attachment.size)}</span>
             </a>
           );

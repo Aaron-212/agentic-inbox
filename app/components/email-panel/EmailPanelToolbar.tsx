@@ -288,7 +288,7 @@ function MoveToFolderMenu({ folders, onMove }: { folders: Folder[]; onMove: (id:
         }
       />
       {open && (
-        <div className="border-kumo-line bg-kumo-elevated absolute top-full left-0 z-50 mt-1 min-w-[160px] rounded-lg border py-1 shadow-lg">
+        <div className="border-kumo-line bg-kumo-elevated absolute top-full left-0 z-50 mt-1 min-w-40 rounded-lg border py-1 shadow-lg">
           <div className="text-kumo-subtle px-3 py-1.5 text-xs font-medium">{m.move_to()}</div>
           <div className="bg-kumo-line my-1 h-px" />
           {folders.map((f) => (
