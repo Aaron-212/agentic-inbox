@@ -7,6 +7,8 @@ import { stripHtmlToText } from "./email-helpers";
 
 const SPAM_MODEL = "typesafe/jev";
 const SPAM_PROBABILITY_THRESHOLD = 0.9;
+const SPAM_TIMEOUT_MS = 10000;
+const SPAM_GATEWAY = "default";
 
 const SpamResultSchema = z.object({
   answers: z.object({
@@ -28,6 +30,57 @@ const SpamResponseSchema = z.union([
     .transform(({ result }) => result),
 ]);
 
+// Inspect only known response fields; never log provider payloads or email content.
+function describeSpamResponse(response: unknown): Record<string, unknown> {
+  const fields = [
+    "state",
+    "result",
+    "response",
+    "output",
+    "answers",
+    "is_spam",
+    "type",
+    "noul",
+    "model",
+    "error",
+    "errors",
+    "code",
+    "message",
+    "usage",
+    "input_tokens",
+    "output_tokens",
+  ];
+  const shape: Record<string, unknown> = {};
+  function visit(value: unknown, path: string, depth: number): void {
+    if (Object.keys(shape).length >= 64) return;
+    const field = path.split(".").at(-1);
+    shape[path] = {
+      type: value === null ? "null" : Array.isArray(value) ? "array" : typeof value,
+      length: typeof value === "string" || Array.isArray(value) ? value.length : undefined,
+      value:
+        typeof value === "number" ||
+        typeof value === "boolean" ||
+        (typeof value === "string" && ["state", "model", "type", "code"].includes(field || ""))
+          ? typeof value === "string"
+            ? value.slice(0, 128)
+            : value
+          : undefined,
+    };
+    if (depth >= 5 || value === null || typeof value !== "object") return;
+    if (Array.isArray(value)) {
+      value.slice(0, 3).forEach((item, index) => visit(item, `${path}.${index}`, depth + 1));
+      return;
+    }
+    for (const field of fields) {
+      if (Object.hasOwn(value, field)) {
+        visit((value as Record<string, unknown>)[field], `${path}.${field}`, depth + 1);
+      }
+    }
+  }
+  visit(response, "response", 0);
+  return shape;
+}
+
 export async function isSpamEmail(
   ai: Ai,
   email: { sender: string; subject: string; text?: string; html?: string },
@@ -36,20 +89,43 @@ export async function isSpamEmail(
   const startedAt = performance.now();
   const logContext = {
     ...context,
+    classificationId: crypto.randomUUID(),
     model: SPAM_MODEL,
+    gateway: SPAM_GATEWAY,
     threshold: SPAM_PROBABILITY_THRESHOLD,
+    timeoutMs: SPAM_TIMEOUT_MS,
   };
-  let stage = "inference";
-  console.info({ event: "spam.classification.started", message: "AI spam classification started", ...logContext });
+  let stage = "input_preparation";
+  let response: unknown;
+  let gatewayLogId: string | null = null;
+  let inferenceDurationMs: number | undefined;
 
   try {
-    const response = await ai.run(
+    const body = email.text || stripHtmlToText(email.html || "");
+    console.info({
+      event: "spam.classification.started",
+      message: "AI spam classification started",
+      ...logContext,
+      input: {
+        bodySource: email.text ? "text" : "html",
+        senderCharacters: email.sender.length,
+        subjectCharacters: email.subject.length,
+        bodyCharacters: body.length,
+        sentBodyCharacters: Math.min(body.length, 12000),
+        senderTruncated: email.sender.length > 320,
+        subjectTruncated: email.subject.length > 1000,
+        bodyTruncated: body.length > 12000,
+      },
+    });
+    stage = "inference";
+    const inferenceStartedAt = performance.now();
+    response = await ai.run(
       SPAM_MODEL,
       {
         state: {
           sender: email.sender.slice(0, 320),
           subject: email.subject.slice(0, 1000),
-          body: (email.text || stripHtmlToText(email.html || "")).slice(0, 12000),
+          body: body.slice(0, 12000),
         },
         questions: {
           is_spam: {
@@ -74,12 +150,17 @@ export async function isSpamEmail(
         },
       },
       {
-        gateway: { id: "default" },
-        signal: AbortSignal.timeout(10000),
+        gateway: {
+          id: SPAM_GATEWAY,
+          metadata: { emailId: context.emailId, classificationId: logContext.classificationId, feature: "spam" },
+        },
+        signal: AbortSignal.timeout(SPAM_TIMEOUT_MS),
       },
     );
 
     stage = "response_validation";
+    inferenceDurationMs = Math.round(performance.now() - inferenceStartedAt);
+    gatewayLogId = ai.aiGatewayLogId;
     const result = SpamResponseSchema.parse(response);
     const probability = result.answers.is_spam.noul;
     const isSpam = probability >= SPAM_PROBABILITY_THRESHOLD;
@@ -87,6 +168,8 @@ export async function isSpamEmail(
       event: "spam.classification.completed",
       message: `AI classified email as ${isSpam ? "spam" : "not spam"} (probability: ${probability})`,
       ...logContext,
+      gatewayLogId,
+      inferenceDurationMs,
       probability,
       isSpam,
       durationMs: Math.round(performance.now() - startedAt),
@@ -98,9 +181,19 @@ export async function isSpamEmail(
       message: `AI spam classification failed during ${stage}`,
       ...logContext,
       stage,
+      gatewayLogId,
+      inferenceDurationMs,
       errorName: error instanceof Error ? error.name : "UnknownError",
-      validationIssues:
-        error instanceof z.ZodError ? error.issues.map(({ code, path }) => ({ code, path })) : undefined,
+      errorMessage: error instanceof Error && !(error instanceof z.ZodError) ? error.message.slice(0, 2000) : undefined,
+      errorStack:
+        error instanceof Error
+          ? error.stack
+              ?.split("\n")
+              .filter((line) => line.trimStart().startsWith("at "))
+              .slice(0, 8)
+          : undefined,
+      validationIssues: error instanceof z.ZodError ? z.treeifyError(error) : undefined,
+      responseShape: stage === "response_validation" ? describeSpamResponse(response) : undefined,
       durationMs: Math.round(performance.now() - startedAt),
     });
     throw error;
