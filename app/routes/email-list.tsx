@@ -375,7 +375,7 @@ export default function EmailListRoute() {
                     {snippet && (
                       <div className="text-kumo-subtle mt-0.5 flex items-center gap-1 text-sm">
                         {summary && (
-                          <span role="img" aria-label="AI summary" className="text-kumo-default shrink-0">
+                          <span role="img" aria-label="AI summary" className="shrink-0">
                             <ListStarIcon size={14} aria-hidden="true" />
                           </span>
                         )}
