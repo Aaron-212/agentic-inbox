@@ -62,13 +62,16 @@ export default function ComposePanel({ session }: { session: ComposeSession }) {
       style={{ visibility: session.minimized ? "hidden" : "visible" }}
       className={`border-kumo-line bg-kumo-base pointer-events-auto border shadow-2xl ${windowState.floating ? "rounded-lg" : ""}`}
     >
+      {form.confirmationDialog}
       <dialog
         ref={dialog}
         aria-labelledby={`${id}-title`}
         onFocusCapture={(event) => {
+          if (!event.currentTarget.contains(event.target)) return;
           if (event.target.matches("input, [contenteditable]")) lastField.current = event.target;
         }}
         onKeyDown={(event) => {
+          if (!event.currentTarget.contains(event.target as Node)) return;
           if (event.key === "Escape" && !event.defaultPrevented) {
             event.preventDefault();
             minimize();

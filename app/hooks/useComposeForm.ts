@@ -18,6 +18,7 @@ import { useDeleteEmail, useForwardEmail, useReplyToEmail, useSaveDraft, useSend
 import { useMailbox } from "~/queries/mailboxes";
 import { ApiError } from "~/services/api";
 import type { ComposeOptions } from "~/hooks/useUIStore";
+import { useConfirmation } from "~/hooks/useConfirmation";
 import { useComposeStore, type ComposeFields, type ComposeSession } from "./useComposeStore";
 
 function appendUniqueAddress(addresses: string[], seen: Set<string>, address: string, exclude?: string) {
@@ -143,6 +144,7 @@ const pendingSaves = new Map<string, Promise<boolean>>();
 const activeOperations = new Set<string>();
 
 export function useComposeForm(session: ComposeSession) {
+  const { confirm, confirmationDialog } = useConfirmation();
   const toastManager = useKumoToastManager();
   const toastRef = useRef(toastManager);
   useEffect(() => {
@@ -263,7 +265,16 @@ export function useComposeForm(session: ComposeSession) {
   const discard = async () => {
     if (activeOperations.has(session.id)) return;
     const meaningful = session.hasSavedDraft || session.revision > 0;
-    if (meaningful && !window.confirm("Discard this draft? This cannot be undone.")) return;
+    if (
+      meaningful &&
+      !(await confirm({
+        title: "Discard draft",
+        description: "Discard this draft? This cannot be undone.",
+        confirmLabel: "Discard",
+      }))
+    )
+      return;
+    if (activeOperations.has(session.id)) return;
     activeOperations.add(session.id);
     setIsSending(true);
     try {
@@ -360,5 +371,6 @@ export function useComposeForm(session: ComposeSession) {
     handleSend,
     closeCompose,
     discard,
+    confirmationDialog,
   };
 }

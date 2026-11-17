@@ -22,6 +22,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { useConfirmation } from "~/hooks/useConfirmation";
 import { useUIStore } from "~/hooks/useUIStore";
 import type { UIMessage } from "ai";
 
@@ -216,6 +217,7 @@ function AgentChatConnected({
   useAgent: typeof import("agents/react").useAgent;
   useAgentChat: typeof import("@cloudflare/ai-chat/react").useAgentChat;
 }) {
+  const { confirm, confirmationDialog } = useConfirmation();
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [inputValue, setInputValue] = useState("");
@@ -257,6 +259,7 @@ function AgentChatConnected({
 
   return (
     <div className="flex h-full flex-col">
+      {confirmationDialog}
       {/* Header */}
       <div className="border-kumo-line flex shrink-0 items-center justify-between border-b px-3 py-1.5">
         <div className="flex items-center gap-2">
@@ -274,8 +277,14 @@ function AgentChatConnected({
                   shape="square"
                   size="sm"
                   icon={<TrashIcon size={14} />}
-                  onClick={() => {
-                    if (window.confirm("Clear chat history?")) {
+                  onClick={async () => {
+                    if (
+                      await confirm({
+                        title: "Clear chat history",
+                        description: "Clear chat history?",
+                        confirmLabel: "Clear chat",
+                      })
+                    ) {
                       setMessages([]);
                     }
                   }}

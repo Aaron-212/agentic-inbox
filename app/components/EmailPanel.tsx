@@ -6,7 +6,7 @@ import { getAIFeatures } from "shared/ai-features";
 import { useKumoToastManager } from "@cloudflare/kumo";
 import { useMemo, useState } from "react";
 import { useParams } from "react-router";
-import { Folders, getEmailDeleteConfirmation } from "shared/folders";
+import { Folders, getEmailDeleteLabel, getEmailDeleteConfirmation } from "shared/folders";
 import EmailPanelDialogs from "~/components/email-panel/EmailPanelDialogs";
 import EmailPanelHeader from "~/components/email-panel/EmailPanelHeader";
 import EmailPanelToolbar from "~/components/email-panel/EmailPanelToolbar";
@@ -27,6 +27,7 @@ import {
 } from "~/queries/emails";
 import { useFolders } from "~/queries/folders";
 import { useMailbox } from "~/queries/mailboxes";
+import { useConfirmation } from "~/hooks/useConfirmation";
 import { useComposeStore } from "~/hooks/useComposeStore";
 import { useUIStore } from "~/hooks/useUIStore";
 import type { Email, Folder, Mailbox } from "~/types";
@@ -70,6 +71,7 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
     data?: Mailbox;
   };
   const { closePanel, startCompose } = useUIStore();
+  const { confirm, confirmationDialog } = useConfirmation();
   const toastManager = useKumoToastManager();
   const [isSending, setIsSending] = useState(false);
   const [sourceViewEmail, setSourceViewEmail] = useState<Email | null>(null);
@@ -147,7 +149,7 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
       closePanel();
     }
   };
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (mailboxId) {
       const composer = useComposeStore
         .getState()
@@ -157,7 +159,14 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
         toastManager.add({ title: "Discard this draft from its open composer." });
         return;
       }
-      if (!window.confirm(getEmailDeleteConfirmation(email.folder_id))) return;
+      if (
+        !(await confirm({
+          title: getEmailDeleteLabel(email.folder_id),
+          description: getEmailDeleteConfirmation(email.folder_id),
+          confirmLabel: getEmailDeleteLabel(email.folder_id),
+        }))
+      )
+        return;
       deleteEmailMut.mutate({ mailboxId, id: email.id });
       closePanel();
     }
@@ -188,7 +197,14 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
       toastManager.add({ title: "Discard this draft from its open composer." });
       return;
     }
-    if (!window.confirm("Discard this draft?")) return;
+    if (
+      !(await confirm({
+        title: "Discard draft",
+        description: "Discard this draft?",
+        confirmLabel: "Discard",
+      }))
+    )
+      return;
     deleteEmailMut.mutate({ mailboxId, id: target.id });
     toastManager.add({ title: "Draft discarded" });
     if (target.id === emailId) closePanel();
@@ -282,6 +298,7 @@ export default function EmailPanel({ emailId }: { emailId: string }) {
 
   return (
     <div className="flex h-full flex-col">
+      {confirmationDialog}
       <EmailPanelToolbar
         email={email}
         mailboxId={mailboxId}

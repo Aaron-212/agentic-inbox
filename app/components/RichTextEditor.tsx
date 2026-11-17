@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Modified by Aaron Ruan.
 
-import { Button, Tooltip } from "@cloudflare/kumo";
+import { Button, Dialog, Input, Tooltip } from "@cloudflare/kumo";
 import {
   ArrowClockwiseIcon,
   ArrowCounterClockwiseIcon,
@@ -26,7 +26,7 @@ import { TextStyle } from "@tiptap/extension-text-style";
 import Underline from "@tiptap/extension-underline";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface RichTextEditorProps {
   value: string;
@@ -35,6 +35,8 @@ interface RichTextEditorProps {
 }
 
 export default function RichTextEditor({ value, onChange, disabled = false }: RichTextEditorProps) {
+  const [isLinkOpen, setIsLinkOpen] = useState(false);
+  const [linkUrl, setLinkUrl] = useState("");
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -75,20 +77,51 @@ export default function RichTextEditor({ value, onChange, disabled = false }: Ri
 
   const setLink = useCallback(() => {
     if (!editor) return;
-    const previousUrl = editor.getAttributes("link").href;
-    const url = window.prompt("URL", previousUrl);
-    if (url === null) return;
-    if (url === "") {
-      editor.chain().focus().extendMarkRange("link").unsetLink().run();
-      return;
-    }
-    editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
+    setLinkUrl(editor.getAttributes("link").href || "");
+    setIsLinkOpen(true);
   }, [editor]);
 
   if (!editor) return null;
 
   return (
     <div className="border-kumo-line flex h-full flex-col overflow-hidden rounded-lg border">
+      <Dialog.Root open={isLinkOpen} onOpenChange={setIsLinkOpen}>
+        <Dialog className="p-6">
+          <Dialog.Title className="mb-4 text-base font-semibold">Edit link</Dialog.Title>
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              if (disabled || editor.isDestroyed) return;
+              if (linkUrl === "") {
+                editor.chain().focus().extendMarkRange("link").unsetLink().run();
+              } else {
+                editor.chain().focus().extendMarkRange("link").setLink({ href: linkUrl }).run();
+              }
+              setIsLinkOpen(false);
+            }}
+          >
+            <Input
+              label="URL"
+              value={linkUrl}
+              onChange={(event) => setLinkUrl(event.target.value)}
+              disabled={disabled}
+            />
+            <div className="mt-5 flex justify-end gap-2">
+              <Dialog.Close
+                render={
+                  <Button type="button" variant="secondary">
+                    Cancel
+                  </Button>
+                }
+              />
+              <Button type="submit" variant="primary" disabled={disabled}>
+                Save
+              </Button>
+            </div>
+          </form>
+        </Dialog>
+      </Dialog.Root>
       {/* Toolbar */}
       <div className="bg-kumo-recessed border-kumo-line flex shrink-0 flex-wrap items-center gap-0.5 border-b px-2 py-1.5">
         {/* Text formatting */}

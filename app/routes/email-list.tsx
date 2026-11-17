@@ -28,6 +28,7 @@ import { getSnippetText } from "~/lib/utils";
 import { useDeleteEmail, useEmails, useMarkThreadRead, useUpdateEmail } from "~/queries/emails";
 import { useFolders } from "~/queries/folders";
 import { queryKeys } from "~/queries/keys";
+import { useConfirmation } from "~/hooks/useConfirmation";
 import { useComposeStore } from "~/hooks/useComposeStore";
 import { useUIStore } from "~/hooks/useUIStore";
 import type { Email } from "~/types";
@@ -129,6 +130,7 @@ export default function EmailListRoute() {
     folder: string;
   }>();
   const { selectedEmailId, selectEmail, closePanel, startCompose } = useUIStore();
+  const { confirm, confirmationDialog } = useConfirmation();
   const [page, setPage] = useState(1);
   const toastManager = useKumoToastManager();
   const [searchParams] = useSearchParams();
@@ -192,7 +194,7 @@ export default function EmailListRoute() {
       });
   };
 
-  const handleDelete = (e: React.MouseEvent, email: Email) => {
+  const handleDelete = async (e: React.MouseEvent, email: Email) => {
     const emailId = email.id;
     e.preventDefault();
     e.stopPropagation();
@@ -205,7 +207,11 @@ export default function EmailListRoute() {
         toastManager.add({ title: "Discard this draft from its open composer." });
         return;
       }
-      const confirmed = window.confirm(getEmailDeleteConfirmation(email.folder_id));
+      const confirmed = await confirm({
+        title: getEmailDeleteLabel(email.folder_id),
+        description: getEmailDeleteConfirmation(email.folder_id),
+        confirmLabel: getEmailDeleteLabel(email.folder_id),
+      });
       if (!confirmed) return;
       deleteEmail.mutate({ mailboxId, id: emailId });
       if (selectedEmailId === emailId) closePanel();
@@ -260,6 +266,7 @@ export default function EmailListRoute() {
 
   return (
     <MailboxSplitView selectedEmailId={selectedEmailId}>
+      {confirmationDialog}
       {/* Folder header */}
       <div className="border-kumo-line flex h-12 shrink-0 items-center justify-between border-b px-4 md:px-5">
         <h1 className="text-kumo-default text-lg font-semibold">{folderName}</h1>
