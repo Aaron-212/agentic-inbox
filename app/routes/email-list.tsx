@@ -10,6 +10,7 @@ import {
   EnvelopeOpenIcon,
   EnvelopeSimpleIcon,
   FileIcon,
+  ListStarIcon,
   PaperPlaneTiltIcon,
   PencilSimpleIcon,
   StarIcon,
@@ -294,7 +295,8 @@ export default function EmailListRoute() {
           <div>
             {emails.map((email) => {
               const isSelected = selectedEmailId === email.id;
-              const snippet = getSnippetText(email.snippet);
+              const summary = email.ai_summary?.trim();
+              const snippet = summary || getSnippetText(email.snippet);
               return (
                 <div
                   key={email.id}
@@ -363,7 +365,16 @@ export default function EmailListRoute() {
                         {email.subject}
                       </span>
                     </div>
-                    {snippet && <div className="text-kumo-subtle mt-0.5 truncate text-sm">{snippet}</div>}
+                    {snippet && (
+                      <div className="text-kumo-subtle mt-0.5 flex items-center gap-1 text-sm">
+                        {summary && (
+                          <span role="img" aria-label="AI summary" className="text-kumo-default shrink-0">
+                            <ListStarIcon size={14} aria-hidden="true" />
+                          </span>
+                        )}
+                        <span className="min-w-0 truncate">{snippet}</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Hover actions */}

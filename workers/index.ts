@@ -24,6 +24,8 @@ import { requireMailbox, type MailboxContext } from "./lib/mailbox";
 import { isMailboxAIFeatureEnabled } from "./lib/ai-settings";
 import { isSpamEmail } from "./lib/spam";
 import { getAIFeatures } from "shared/ai-features";
+import { getAIModel } from "shared/ai-model";
+import { summarizeEmail } from "./lib/summary";
 
 type AppContext = Context<MailboxContext>;
 
@@ -53,6 +55,7 @@ function mailboxSettingsSchema(mailboxId: string) {
           assistant: z.boolean().optional(),
           replies: z.boolean().optional(),
           spam: z.boolean().optional(),
+          summaries: z.boolean().optional(),
           mcp: z.boolean().optional(),
         })
         .optional(),
@@ -469,7 +472,7 @@ async function streamToArrayBuffer(stream: ReadableStream, streamSize: number) {
   return result;
 }
 
-async function receiveEmail(event: ForwardableEmailMessage, env: Env) {
+async function receiveEmail(event: ForwardableEmailMessage, env: Env, ctx: ExecutionContext) {
   const rawEmail = await streamToArrayBuffer(event.raw, event.rawSize);
   const parsedEmail = await new PostalMime().parse(rawEmail);
 
@@ -582,6 +585,28 @@ async function receiveEmail(event: ForwardableEmailMessage, env: Env) {
   let postDeliveryStage = "settings";
   try {
     const settings = mailboxSettingsSchema(mailboxId).safeParse(await mailbox.json());
+    if (settings.success && getAIFeatures(settings.data).summaries) {
+      const modelId = getAIModel(settings.data, "summaries");
+      ctx.waitUntil(
+        (async () => {
+          try {
+            const summary = await summarizeEmail(
+              env.AI,
+              { subject: parsedEmail.subject || "", text: parsedEmail.text, html: parsedEmail.html },
+              modelId,
+            );
+            if (summary) await stub.setEmailSummary(messageId, summary);
+          } catch (error) {
+            console.error({
+              event: "email.summary.failed",
+              message: "AI summary failed; original excerpt retained",
+              ...logContext,
+              errorName: error instanceof Error ? error.name : "UnknownError",
+            });
+          }
+        })(),
+      );
+    }
     if (settings.success && getAIFeatures(settings.data).spam) {
       let stage = "classification";
       try {

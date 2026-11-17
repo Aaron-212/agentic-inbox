@@ -140,6 +140,7 @@ export default function SettingsRoute() {
               ["assistant", "AI assistant"],
               ["replies", "AI reply drafting"],
               ["spam", "AI spam detection"],
+              ["summaries", "AI summaries for new mail"],
               ["mcp", "MCP access"],
             ] satisfies [keyof AIFeatures, string][]
           ).map(([feature, label]) => (
@@ -166,8 +167,9 @@ export default function SettingsRoute() {
               aria-describedby="ai-model-help"
             />
             <p id="ai-model-help" className="text-kumo-subtle mt-2 text-xs">
-              Applies to the assistant, AI replies, and safety checks. Spam detection always uses Jev. Leave empty to
-              use the built-in models. Choose a text-generation model with function calling for the assistant from the{" "}
+              Applies to the assistant, AI replies, summaries, and safety checks. Spam detection always uses Jev. Leave
+              empty to use the built-in models. Choose a text-generation model with function calling for the assistant
+              from the{" "}
               <Link href="https://developers.cloudflare.com/workers-ai/models/" variant="current">
                 Workers AI catalog
               </Link>

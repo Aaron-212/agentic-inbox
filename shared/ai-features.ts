@@ -6,6 +6,7 @@ export interface AIFeatures {
   assistant: boolean;
   replies: boolean;
   spam: boolean;
+  summaries: boolean;
   mcp: boolean;
 }
 
@@ -20,6 +21,7 @@ export function getAIFeatures(settings?: AIFeatureSettings): AIFeatures {
     assistant: settings?.aiFeatures?.assistant ?? enabled,
     replies: settings?.aiFeatures?.replies ?? enabled,
     spam: settings?.aiFeatures?.spam ?? false,
+    summaries: settings?.aiFeatures?.summaries ?? false,
     mcp: settings?.aiFeatures?.mcp ?? enabled,
   };
 }

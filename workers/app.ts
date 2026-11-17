@@ -104,9 +104,9 @@ export default {
   async scheduled(controller: ScheduledController, env: Env) {
     await cleanupMailboxes(env, controller.scheduledTime);
   },
-  async email(event: ForwardableEmailMessage, env: Env) {
+  async email(event: ForwardableEmailMessage, env: Env, ctx: ExecutionContext) {
     try {
-      await receiveEmail(event, env);
+      await receiveEmail(event, env, ctx);
     } catch (e) {
       console.error("Failed to process incoming email:", (e as Error).message, (e as Error).stack);
       // Re-throw so Cloudflare's email routing can retry delivery or bounce the message.

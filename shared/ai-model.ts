@@ -7,6 +7,7 @@ export const DEFAULT_AI_MODELS = {
   replies: "@cf/moonshotai/kimi-k2.5",
   security: "@cf/meta/llama-3.1-8b-instruct-fast",
   verification: "@cf/meta/llama-4-scout-17b-16e-instruct",
+  summaries: "@cf/meta/llama-3.1-8b-instruct-fast",
 } as const;
 
 export interface AIModelSettings {

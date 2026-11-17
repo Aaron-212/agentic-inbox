@@ -171,4 +171,8 @@ export const mailboxMigrations: Migration[] = [
       CREATE TABLE pending_attachment_deletions (key TEXT PRIMARY KEY);
     `,
   },
+  {
+    name: "11_add_ai_summary",
+    sql: `ALTER TABLE emails ADD COLUMN ai_summary TEXT;`,
+  },
 ];

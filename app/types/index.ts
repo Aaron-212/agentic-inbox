@@ -46,6 +46,7 @@ export interface Email {
   raw_headers?: string | null;
   attachments?: Attachment[];
   snippet?: string | null;
+  ai_summary?: string | null;
   // Thread aggregate fields (only present in threaded list view)
   thread_count?: number;
   thread_unread_count?: number;

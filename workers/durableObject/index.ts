@@ -150,6 +150,7 @@ export class MailboxDO extends DurableObject<Env> {
         thread_id: schema.emails.thread_id,
         folder_id: schema.emails.folder_id,
         snippet: sql<string>`SUBSTR(${schema.emails.body}, 1, 300)`,
+        ai_summary: schema.emails.ai_summary,
       })
       .from(schema.emails)
       .where(conditions.length > 0 ? and(...conditions) : undefined)
@@ -247,6 +248,7 @@ export class MailboxDO extends DurableObject<Env> {
 					lp.read, lp.starred, lp.thread_id, lp.folder_id,
 					lp.in_reply_to, lp.email_references,
 					SUBSTR(lp.body, 1, 300) as snippet,
+					lp.ai_summary,
 					ds.thread_count, ds.thread_unread_count, ds.participants
 				FROM latest_per_group lp
 				JOIN draft_stats ds ON lp.draft_group_key = ds.draft_group_key
@@ -337,6 +339,7 @@ export class MailboxDO extends DurableObject<Env> {
 				lif.read, lif.starred, lif.thread_id, lif.folder_id,
 				lif.in_reply_to, lif.email_references,
 				SUBSTR(lif.body, 1, 300) as snippet,
+				lif.ai_summary,
 				cs.thread_count, cs.thread_unread_count, cs.participants,
 				CASE WHEN lmc.folder_id != (SELECT id FROM folders WHERE name = 'sent' LIMIT 1)
 					AND lmc.folder_id != (SELECT id FROM folders WHERE name = 'draft' LIMIT 1)
@@ -491,6 +494,10 @@ export class MailboxDO extends DurableObject<Env> {
   async markThreadRead(threadId: string) {
     this.ctx.storage.sql.exec(`UPDATE emails SET read = 1 WHERE thread_id = ? AND read = 0`, threadId);
     return { threadId, markedRead: true };
+  }
+
+  async setEmailSummary(id: string, summary: string) {
+    this.db.update(schema.emails).set({ ai_summary: summary }).where(eq(schema.emails.id, id)).run();
   }
 
   async trashOrDeleteEmail(id: string) {
@@ -739,6 +746,7 @@ export class MailboxDO extends DurableObject<Env> {
 				e.read, e.starred, e.in_reply_to, e.email_references,
 				e.thread_id, e.folder_id,
 				SUBSTR(e.body, 1, 300) as snippet,
+				e.ai_summary,
 				f.name as folder_name
 			FROM emails e
 			LEFT JOIN folders f ON e.folder_id = f.id
