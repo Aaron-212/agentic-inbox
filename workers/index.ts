@@ -477,7 +477,12 @@ async function receiveEmail(event: ForwardableEmailMessage, env: Env) {
 
   const messageId = crypto.randomUUID();
   const logContext = { emailId: messageId };
-  console.info({ event: "email.received", ...logContext, sizeBytes: event.rawSize });
+  console.info({
+    event: "email.received",
+    message: "Incoming email received",
+    ...logContext,
+    sizeBytes: event.rawSize,
+  });
 
   const allowedAddresses = ((env.EMAIL_ADDRESSES ?? []) as string[]).map((a) => a.toLowerCase());
   const allRecipients = (parsedEmail.to || []).map((t) => t.address?.toLowerCase()).filter(Boolean) as string[];
@@ -487,13 +492,23 @@ async function receiveEmail(event: ForwardableEmailMessage, env: Env) {
   // Use the SMTP recipient so aliases, Cc, and Bcc select the correct mailbox settings.
   const mailboxId = event.to.toLowerCase();
   if (allowedAddresses.length > 0 && !allowedAddresses.includes(mailboxId)) {
-    console.info({ event: "email.ignored", ...logContext, reason: "recipient_not_allowed" });
+    console.info({
+      event: "email.ignored",
+      message: "Email ignored: recipient not allowed",
+      ...logContext,
+      reason: "recipient_not_allowed",
+    });
     return;
   }
 
   const mailbox = await env.BUCKET.get(`mailboxes/${mailboxId}.json`);
   if (!mailbox) {
-    console.info({ event: "email.ignored", ...logContext, reason: "mailbox_not_found" });
+    console.info({
+      event: "email.ignored",
+      message: "Email ignored: mailbox not found",
+      ...logContext,
+      reason: "mailbox_not_found",
+    });
     return;
   }
 
@@ -559,6 +574,7 @@ async function receiveEmail(event: ForwardableEmailMessage, env: Env) {
 
   console.info({
     event: "email.stored",
+    message: "Incoming email stored in Inbox",
     ...logContext,
     folder: Folders.INBOX,
     attachmentCount: attachmentData.length,
@@ -591,17 +607,30 @@ async function receiveEmail(event: ForwardableEmailMessage, env: Env) {
               folder = Folders.SPAM;
               reason = "spam";
             } else {
-              console.error({ event: "spam.move.failed", ...logContext, reason: "spam_folder_missing" });
+              console.error({
+                event: "spam.move.failed",
+                message: "Spam folder missing; email retained in Inbox",
+                ...logContext,
+                reason: "spam_folder_missing",
+              });
               reason = "spam_folder_missing";
             }
           } else {
             reason = "spam_detection_disabled_before_move";
           }
         }
-        console.info({ event: "spam.disposition", ...logContext, isSpam: spam, folder, reason });
+        console.info({
+          event: "spam.disposition",
+          message: folder === Folders.SPAM ? "Email moved to Spam" : "Email retained in Inbox",
+          ...logContext,
+          isSpam: spam,
+          folder,
+          reason,
+        });
       } catch (error) {
         console.error({
           event: "spam.processing.failed",
+          message: `Spam processing failed during ${stage}; email retained in Inbox`,
           ...logContext,
           stage,
           errorName: error instanceof Error ? error.name : "UnknownError",
@@ -612,6 +641,9 @@ async function receiveEmail(event: ForwardableEmailMessage, env: Env) {
     } else {
       const details = {
         event: "spam.classification.skipped",
+        message: settings.success
+          ? "Spam classification skipped: disabled for this mailbox"
+          : "Spam classification skipped: invalid mailbox settings",
         ...logContext,
         reason: settings.success ? "disabled" : "invalid_mailbox_settings",
         folder: Folders.INBOX,
@@ -623,13 +655,14 @@ async function receiveEmail(event: ForwardableEmailMessage, env: Env) {
     const forwarding = settings.success ? settings.data.forwarding : undefined;
     if (forwarding?.enabled && !event.headers.has("X-Agentic-Inbox-Forwarded")) {
       postDeliveryStage = "forwarding";
-      console.info({ event: "email.forwarding.started", ...logContext });
+      console.info({ event: "email.forwarding.started", message: "Email forwarding started", ...logContext });
       await event.forward(forwarding.email, new Headers({ "X-Agentic-Inbox-Forwarded": mailboxId }));
-      console.info({ event: "email.forwarding.completed", ...logContext });
+      console.info({ event: "email.forwarding.completed", message: "Email forwarding completed", ...logContext });
     }
   } catch (error) {
     console.error({
       event: "email.post_delivery.failed",
+      message: `Post-delivery processing failed during ${postDeliveryStage}; local email copy retained`,
       ...logContext,
       stage: postDeliveryStage,
       errorName: error instanceof Error ? error.name : "UnknownError",

@@ -29,7 +29,7 @@ export async function isSpamEmail(
     threshold: SPAM_PROBABILITY_THRESHOLD,
   };
   let stage = "inference";
-  console.info({ event: "spam.classification.started", ...logContext });
+  console.info({ event: "spam.classification.started", message: "AI spam classification started", ...logContext });
 
   try {
     const response = await ai.run(
@@ -67,6 +67,7 @@ export async function isSpamEmail(
     const isSpam = probability >= SPAM_PROBABILITY_THRESHOLD;
     console.info({
       event: "spam.classification.completed",
+      message: `AI classified email as ${isSpam ? "spam" : "not spam"} (probability: ${probability})`,
       ...logContext,
       probability,
       isSpam,
@@ -76,6 +77,7 @@ export async function isSpamEmail(
   } catch (error) {
     console.error({
       event: "spam.classification.failed",
+      message: `AI spam classification failed during ${stage}`,
       ...logContext,
       stage,
       errorName: error instanceof Error ? error.name : "UnknownError",
