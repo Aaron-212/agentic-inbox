@@ -8,7 +8,7 @@ import { stripHtmlToText } from "./email-helpers";
 const SPAM_MODEL = "typesafe/jev";
 const SPAM_PROBABILITY_THRESHOLD = 0.9;
 
-const SpamResponseSchema = z.object({
+const SpamResultSchema = z.object({
   answers: z.object({
     is_spam: z.object({
       type: z.literal("noul"),
@@ -16,6 +16,17 @@ const SpamResponseSchema = z.object({
     }),
   }),
 });
+
+// Cloudflare can wrap third-party model output in a completed execution result.
+const SpamResponseSchema = z.union([
+  SpamResultSchema,
+  z
+    .object({
+      state: z.literal("Completed"),
+      result: SpamResultSchema,
+    })
+    .transform(({ result }) => result),
+]);
 
 export async function isSpamEmail(
   ai: Ai,
