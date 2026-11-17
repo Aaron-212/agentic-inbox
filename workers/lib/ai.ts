@@ -10,7 +10,7 @@
  */
 
 import { generateText } from "ai";
-import { createWorkersAI } from "workers-ai-provider";
+import { createAI } from "agents/models/ai-sdk";
 import { DEFAULT_AI_MODELS } from "shared/ai-model";
 import { escapeHtml, stripHtmlToText, textToHtml } from "./email-helpers";
 
@@ -36,7 +36,7 @@ export async function isPromptInjection(
 
   try {
     const response = await generateText({
-      model: createWorkersAI({ binding: ai })(modelId),
+      model: createAI({ binding: ai }).languageModel(modelId),
       system: INJECTION_PROMPT,
       prompt: plainText,
       maxOutputTokens: 1024,
@@ -140,7 +140,7 @@ export async function verifyDraft(
 
   try {
     const response = await generateText({
-      model: createWorkersAI({ binding: ai })(modelId),
+      model: createAI({ binding: ai }).languageModel(modelId),
       system: VERIFIER_PROMPT,
       prompt: replyText,
       maxOutputTokens: 4096,
