@@ -86,9 +86,9 @@ function EmailListSkeleton() {
   return (
     <div className="animate-pulse space-y-1 p-2">
       {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="flex items-center gap-3 p-3 ">
-          <div className="bg-kumo-fill size-4  rounded" />
-          <div className="bg-kumo-fill size-5  rounded" />
+        <div key={i} className="flex items-center gap-3 p-3">
+          <div className="bg-kumo-fill size-4 rounded" />
+          <div className="bg-kumo-fill size-5 rounded" />
           <div className="flex-1 space-y-2">
             <div className="flex items-center gap-2">
               <div className="bg-kumo-fill h-3 w-24 rounded" />
@@ -323,7 +323,7 @@ export default function EmailListRoute() {
                 >
                   {/* Unread dot */}
                   <div className="flex w-2.5 shrink-0 justify-center">
-                    {hasUnread(email) && <div className="bg-kumo-brand size-2  rounded-full" />}
+                    {hasUnread(email) && <div className="bg-kumo-brand size-2 rounded-full" />}
                   </div>
 
                   {/* Star */}

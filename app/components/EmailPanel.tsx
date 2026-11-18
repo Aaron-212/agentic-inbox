@@ -39,7 +39,7 @@ function EmailPanelSkeleton() {
     <div className="animate-pulse space-y-4 p-5">
       <div className="bg-kumo-fill h-5 w-2/3 rounded" />
       <div className="flex items-center gap-3">
-        <div className="bg-kumo-fill size-10  rounded-full" />
+        <div className="bg-kumo-fill size-10 rounded-full" />
         <div className="flex-1 space-y-2">
           <div className="bg-kumo-fill h-3 w-40 rounded" />
           <div className="bg-kumo-fill h-2.5 w-24 rounded" />

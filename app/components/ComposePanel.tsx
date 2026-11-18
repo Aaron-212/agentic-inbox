@@ -79,7 +79,7 @@ export default function ComposePanel({ session }: { session: ComposeSession }) {
             minimize();
           }
         }}
-        className={`bg-kumo-base text-kumo-default absolute inset-0 m-0 size-full max-h-none  max-w-none border-0 p-0 open:flex open:flex-col ${windowState.floating ? "rounded-lg" : ""}`}
+        className={`bg-kumo-base text-kumo-default absolute inset-0 m-0 size-full max-h-none max-w-none border-0 p-0 open:flex open:flex-col ${windowState.floating ? "rounded-lg" : ""}`}
       >
         <span className="sr-only" role="status">
           {windowState.announcement}

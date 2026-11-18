@@ -124,7 +124,7 @@ function MessageBubble({
   return (
     <div className={`flex gap-2 ${isUser ? "flex-row-reverse" : "flex-row"}`}>
       <div
-        className={`flex size-6  shrink-0 items-center justify-center rounded-full ${
+        className={`flex size-6 shrink-0 items-center justify-center rounded-full ${
           isUser ? "bg-kumo-brand text-kumo-inverse" : "bg-kumo-fill text-kumo-default"
         }`}
       >
@@ -299,10 +299,10 @@ function AgentChatConnected({
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-4">
         {messages.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center gap-4">
-            <div className="bg-kumo-brand/10 flex size-12  items-center justify-center rounded-xl">
+            <div className="bg-kumo-brand/10 flex size-12 items-center justify-center rounded-xl">
               <RobotIcon size={24} weight="duotone" className="text-kumo-brand" />
             </div>
-            <p className="text-kumo-subtle px-4 text-center text-xs/relaxed ">{m.agent_intro()}</p>
+            <p className="text-kumo-subtle px-4 text-center text-xs/relaxed">{m.agent_intro()}</p>
             <div className="flex w-full flex-col gap-1.5">
               {suggestedPrompts.map((prompt) => (
                 <button
@@ -365,7 +365,7 @@ function AgentChatConnected({
             ))}
             {isStreaming && (
               <div className="flex gap-2">
-                <div className="bg-kumo-fill text-kumo-default flex size-6  shrink-0 items-center justify-center rounded-full">
+                <div className="bg-kumo-fill text-kumo-default flex size-6 shrink-0 items-center justify-center rounded-full">
                   <RobotIcon size={12} weight="bold" />
                 </div>
                 <div className="bg-kumo-elevated border-kumo-line flex items-center gap-1.5 rounded-lg rounded-tl-sm border px-3 py-2">
