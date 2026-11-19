@@ -47,7 +47,7 @@ export async function isSpamEmail(
   try {
     const body = email.text || stripHtmlToText(email.html || "");
     stage = "inference";
-    let response: unknown = await ai.run(
+    const response = await ai.run(
       SPAM_MODEL,
       {
         state: {
@@ -82,24 +82,11 @@ export async function isSpamEmail(
           id: SPAM_GATEWAY,
           metadata: { emailId: context.emailId, feature: "spam" },
         },
-        // Decode explicitly to handle the binding's shared response-format options.
-        returnRawResponse: true,
         signal: AbortSignal.timeout(SPAM_TIMEOUT_MS),
       },
     );
 
-    stage = "response_decoding";
-    if (response instanceof Response) {
-      gatewayLogId = response.headers.get("cf-aig-log-id");
-      if (!response.ok) {
-        await response.body?.cancel();
-        throw new Error(`Jev inference returned HTTP ${response.status}`);
-      }
-      response = await response.json();
-    } else if (response instanceof ReadableStream) {
-      // Also handle a stream if a binding runtime returns one despite the raw-response option.
-      response = await new Response(response).json();
-    }
+    gatewayLogId = ai.aiGatewayLogId;
     stage = "response_validation";
     const result = SpamResponseSchema.parse(response);
     const probability = result.answers.is_spam.noul;

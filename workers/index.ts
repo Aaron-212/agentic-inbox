@@ -586,32 +586,12 @@ async function receiveEmail(event: ForwardableEmailMessage, env: Env, ctx: Execu
   let postDeliveryStage = "settings";
   try {
     const settings = mailboxSettingsSchema(mailboxId).safeParse(await mailbox.json());
-    if (settings.success && getAIFeatures(settings.data).summaries) {
-      const modelId = getAIModel(settings.data, "summaries");
-      ctx.waitUntil(
-        (async () => {
-          try {
-            const summary = await summarizeEmail(
-              env.AI,
-              { subject: parsedEmail.subject || "", text: parsedEmail.text, html: parsedEmail.html },
-              modelId,
-            );
-            if (summary) await stub.setEmailSummary(messageId, summary);
-          } catch (error) {
-            console.error({
-              event: "email.summary.failed",
-              message: "AI summary failed; original excerpt retained",
-              ...logContext,
-              errorName: error instanceof Error ? error.name : "UnknownError",
-            });
-          }
-        })(),
-      );
-    }
-    if (settings.success && getAIFeatures(settings.data).spam) {
+    const aiFeatures = settings.success ? getAIFeatures(settings.data) : undefined;
+    let spam: boolean | undefined;
+    if (aiFeatures?.spam) {
       let stage = "classification";
       try {
-        const spam = await isSpamEmail(
+        spam = await isSpamEmail(
           env.AI,
           {
             sender: parsedEmail.from?.address || "",
@@ -674,6 +654,29 @@ async function receiveEmail(event: ForwardableEmailMessage, env: Env, ctx: Execu
       };
       if (settings.success) console.info(details);
       else console.warn(details);
+    }
+
+    if (settings.success && aiFeatures?.summaries && (!aiFeatures.spam || spam === false)) {
+      const modelId = getAIModel(settings.data, "summaries");
+      ctx.waitUntil(
+        (async () => {
+          try {
+            const summary = await summarizeEmail(
+              env.AI,
+              { subject: parsedEmail.subject || "", text: parsedEmail.text, html: parsedEmail.html },
+              modelId,
+            );
+            if (summary) await stub.setEmailSummary(messageId, summary);
+          } catch (error) {
+            console.error({
+              event: "email.summary.failed",
+              message: "AI summary failed; original excerpt retained",
+              ...logContext,
+              errorName: error instanceof Error ? error.name : "UnknownError",
+            });
+          }
+        })(),
+      );
     }
 
     const forwarding = settings.success ? settings.data.forwarding : undefined;
