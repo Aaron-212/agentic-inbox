@@ -8,13 +8,12 @@
     "cf-typegen": "wrangler types",
     "deploy": "pnpm run build && wrangler deploy",
     "dev": "react-router dev",
-    "format": "oxfmt .",
-    "format:check": "oxfmt --check .",
-    "lint": "oxlint .",
-    "lint:fix": "oxlint --fix .",
-    "preview": "pnpm run build && vite preview",
+    "format": "oxfmt",
+    "lint": "oxlint",
+    "build:preview": "vite preview",
     "typecheck": "pnpm run i18n:compile && pnpm run cf-typegen && react-router typegen && tsc -b",
-    "i18n:compile": "paraglide-js compile --project ./project.inlang --outdir ./shared/paraglide"
+    "i18n:compile": "paraglide-js compile --project ./project.inlang --outdir ./shared/paraglide",
+    "preview": "pnpm run build && wrangler preview"
   },
   "dependencies": {
     "@ai-sdk/provider": "^4.0.38",
