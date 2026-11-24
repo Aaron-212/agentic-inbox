@@ -197,4 +197,8 @@ export const mailboxMigrations: Migration[] = [
       CREATE INDEX idx_email_deliveries_received_at ON email_deliveries(received_at);
     `,
   },
+  {
+    name: "13_mark_trashed_emails_read",
+    sql: `UPDATE emails SET read = 1 WHERE folder_id = 'trash' AND read IS NOT 1;`,
+  },
 ];
