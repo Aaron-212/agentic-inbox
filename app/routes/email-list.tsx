@@ -435,7 +435,7 @@ export default function EmailListRoute() {
 
       {/* Pagination */}
       {totalCount > PAGE_SIZE && (
-        <div className="border-kumo-line flex shrink-0 justify-center border-t py-3">
+        <div className="border-kumo-line flex shrink-0 justify-center border-t p-4">
           <MailPagination page={page} setPage={setPage} perPage={PAGE_SIZE} totalCount={totalCount} />
         </div>
       )}
