@@ -5,8 +5,8 @@
 import { z } from "zod";
 import { stripHtmlToText } from "./email-helpers";
 
-const SPAM_MODEL = "typesafe/jev";
-const SPAM_PROBABILITY_THRESHOLD = 0.9;
+const SPAM_MODEL = "typesafe/jev-1.14.0";
+const SPAM_PROBABILITY_THRESHOLD = 0.8;
 const SPAM_TIMEOUT_MS = 10000;
 const SPAM_GATEWAY = "default";
 
